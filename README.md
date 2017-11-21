@@ -41,7 +41,7 @@ This tap:
    {
      "start_date": "2010-01-01",
      "api_key": "your-api-key",
-     "uat_urls": false
+     "uat_urls": "true"
    }
    ```
 
