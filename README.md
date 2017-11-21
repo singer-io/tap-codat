@@ -136,4 +136,4 @@ Then `name_0` will always be either `A` or `E`, `name_1` will always be `B`,
 
 ---
 
-Copyright &copy; 2017 Fishtown Analytics
+Copyright &copy; 2017 Stitch
