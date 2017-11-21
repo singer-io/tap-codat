@@ -105,6 +105,12 @@
         "null",
         "string"
       ]
+    },
+    "status": {
+      "type": [
+        "null",
+        "string"
+      ]
     }
   },
   "additionalProperties": false

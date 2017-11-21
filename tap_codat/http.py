@@ -20,7 +20,7 @@ class Client(object):
         self.user_agent = config.get("user_agent")
         self.session = requests.Session()
         self.b64key = b64encode(config["api_key"].encode()).decode("utf-8")
-        self.base_url = UAT_URL if config.get("uat_urls") else BASE_URL
+        self.base_url = UAT_URL if config.get("uat_urls").lower() == "true" else BASE_URL
 
     def prepare_and_send(self, request):
         if self.user_agent:
