@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name="tap-codat",
-    version="0.1.1",
+    version="0.1.2",
     description="Singer.io tap for extracting data from the Codat API",
     author="Stitch",
     url="http://singer.io",
