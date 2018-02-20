@@ -3,7 +3,7 @@
     "null",
     "object"
   ],
-  "additionalProperties": false,
+  "additionalProperties": true,
   "properties": {
     "companyId": {
       "type": [
@@ -33,7 +33,7 @@
           "null",
           "object"
         ],
-        "additionalProperties": false,
+        "additionalProperties": true,
         "properties": {
           "fromDate": {
             "type": [

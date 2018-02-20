@@ -26,6 +26,18 @@ class Stream(object):
         singer.write_records(self.tap_stream_id, records)
         self.metrics(records)
 
+    def log_additional_properties(self, ctx, records):
+        schema = ctx.catalog.get_stream(self.tap_stream_id).schema.to_dict()
+        logged_error = False
+        for i, record in enumerate(records):
+            try:
+                tform(record, schema)
+            except Exception as e:
+                if not logged_error:
+                    error_snippet = str(e)[:512]
+                    LOGGER.info("Ignoring validation error: {}".format(error_snippet))
+                logger_error = True
+
     def format_response(self, response, company):
         if self.returns_collection:
             if self.collection_key:
@@ -39,7 +51,9 @@ class Stream(object):
         return self.custom_formatter(records)
 
     def transform_dts(self, ctx, records):
-        return transform_dts(records, ctx.schema_dt_paths[self.tap_stream_id])
+        transformed = transform_dts(records, ctx.schema_dt_paths[self.tap_stream_id])
+        self.log_additional_properties(ctx, transformed)
+        return transformed
 
 
 class Companies(Stream):

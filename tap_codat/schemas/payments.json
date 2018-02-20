@@ -55,7 +55,7 @@
                 "null",
                 "object"
               ],
-              "additionalProperties": false
+              "additionalProperties": true
             },
             "type": [
               "null",
@@ -73,7 +73,7 @@
           "null",
           "object"
         ],
-        "additionalProperties": false
+        "additionalProperties": true
       },
       "type": [
         "null",
@@ -105,8 +105,8 @@
         "null",
         "object"
       ],
-      "additionalProperties": false
+      "additionalProperties": true
     }
   },
-  "additionalProperties": false
+  "additionalProperties": true
 }

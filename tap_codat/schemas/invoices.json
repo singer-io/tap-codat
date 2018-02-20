@@ -2,7 +2,7 @@
   "type": [
     "object"
   ],
-  "additionalProperties": false,
+  "additionalProperties": true,
   "properties": {
     "companyId": {
       "type": [
@@ -33,7 +33,7 @@
         "null",
         "object"
       ],
-      "additionalProperties": false,
+      "additionalProperties": true,
       "properties": {
         "id": {
           "type": [
@@ -147,7 +147,7 @@
             ]
           }
         },
-        "additionalProperties": false
+        "additionalProperties": true
       }
     },
     "totalDiscount": {

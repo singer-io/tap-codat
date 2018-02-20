@@ -1,5 +1,5 @@
 {
-  "additionalProperties": false,
+  "additionalProperties": true,
   "type": [
     "object"
   ],
@@ -57,7 +57,7 @@
         "array"
       ],
       "items": {
-        "additionalProperties": false,
+        "additionalProperties": true,
         "type": [
           "null",
           "object"
@@ -132,7 +132,7 @@
         "array"
       ],
       "items": {
-        "additionalProperties": false,
+        "additionalProperties": true,
         "type": [
           "null",
           "object"
@@ -163,7 +163,7 @@
               "array"
             ],
             "items": {
-              "additionalProperties": false,
+              "additionalProperties": true,
               "type": [
                 "null",
                 "object"
@@ -185,7 +185,7 @@
             }
           },
           "address": {
-            "additionalProperties": false,
+            "additionalProperties": true,
             "type": [
               "null",
               "object"

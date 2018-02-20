@@ -57,7 +57,7 @@
           "null",
           "object"
         ],
-        "additionalProperties": false,
+        "additionalProperties": true,
         "properties": {
           "region": {
             "type": [
@@ -115,5 +115,5 @@
       ]
     }
   },
-  "additionalProperties": false
+  "additionalProperties": true
 }
