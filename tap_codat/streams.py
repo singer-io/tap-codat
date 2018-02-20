@@ -34,7 +34,7 @@ class Stream(object):
                 tform(record, schema)
             except Exception as e:
                 if not logged_error:
-                    error_snippet = str(e)[:512]
+                    error_snippet = str(e)[:1024]
                     LOGGER.info("Ignoring validation error: {}".format(error_snippet))
                 logger_error = True
 
