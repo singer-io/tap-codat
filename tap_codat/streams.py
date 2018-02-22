@@ -29,7 +29,12 @@ class Stream(object):
     def log_additional_properties(self, ctx, records):
         schema = ctx.catalog.get_stream(self.tap_stream_id).schema.to_dict()
         logged_error = False
-        for i, record in enumerate(records):
+
+        # Try to transform this record according to the specified schema. Any
+        # fields which are present in the data but absent from the schema
+        # will be logged below. As the Codat API matures, additionalProperties
+        # should be changed to `false` everywhere, and this code should be removed.
+        for record in records:
             try:
                 tform(record, schema)
             except Exception as e:
