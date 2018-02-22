@@ -41,7 +41,7 @@ This tap:
    {
      "start_date": "2010-01-01",
      "api_key": "your-api-key",
-     "uat_urls": false
+     "uat_urls": "true"
    }
    ```
 
@@ -136,4 +136,4 @@ Then `name_0` will always be either `A` or `E`, `name_1` will always be `B`,
 
 ---
 
-Copyright &copy; 2017 Fishtown Analytics
+Copyright &copy; 2017 Stitch
