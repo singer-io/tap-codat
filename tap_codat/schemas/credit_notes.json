@@ -48,7 +48,7 @@
       "format": "date-time"
     },
     "customerRef": {
-      "additionalProperties": false,
+      "additionalProperties": true,
       "type": [
         "null",
         "object"
@@ -81,7 +81,7 @@
       ]
     }
   },
-  "additionalProperties": false,
+  "additionalProperties": true,
   "tap_schema_dependencies": [
     "payment_allocations"
   ]

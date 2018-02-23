@@ -52,7 +52,7 @@
             "$ref": "flattened_report"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": true
       },
       "type": [
         "null",
@@ -72,7 +72,7 @@
       ]
     }
   },
-  "additionalProperties": false,
+  "additionalProperties": true,
   "tap_schema_dependencies": [
     "flattened_report"
   ]

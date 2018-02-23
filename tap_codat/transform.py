@@ -74,7 +74,7 @@ def _transform_impl(item, path, path_idx=0):
         return item
     if path_idx == len(path):
         dt = pendulum.parse(item).in_timezone("UTC")
-        return strftime(dt)
+        return dt.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
     _check_type(item, path, path_idx)
     path_item = path[path_idx]
     for k, v in path_item.iterate(item):

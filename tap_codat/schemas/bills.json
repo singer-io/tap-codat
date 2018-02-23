@@ -73,7 +73,7 @@
       ]
     }
   },
-  "additionalProperties": false,
+  "additionalProperties": true,
   "tap_schema_dependencies": [
     "suppliers"
   ]

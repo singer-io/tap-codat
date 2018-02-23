@@ -81,7 +81,7 @@
             ]
           }
         },
-        "additionalProperties": false
+        "additionalProperties": true
       }
     },
     "toDate": {
@@ -105,5 +105,5 @@
       ]
     }
   },
-  "additionalProperties": false
+  "additionalProperties": true
 }
