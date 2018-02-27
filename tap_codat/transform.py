@@ -1,6 +1,5 @@
 import pendulum
 from singer.utils import strftime as singer_strftime
-import sys
 
 
 class DictKey(object):
