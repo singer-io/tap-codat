@@ -1,5 +1,6 @@
 import pendulum
-from singer.utils import strftime
+from singer.utils import strftime as singer_strftime
+import sys
 
 
 class DictKey(object):
@@ -69,12 +70,31 @@ def _check_type(item, path, path_idx):
         raise TransformationException(item, path, path_idx)
 
 
+def safe_strftime(dt):
+    # Different implementations of the C strftime lib
+    # will render out years differently. This function
+    # tries to use the Singer strftime func, then falls
+    # back to a different implementation.
+    #
+    # If the strftime lib is different than the expected version,
+    # then the resulting date will look like
+    #
+    # 4Y-01-01 12:00:00...
+    #
+    # This code catches this failure mode, and use an alternative fmt string
+
+    res = singer_strftime(dt)
+    if res.startswith('4Y'):
+        res = dt.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+
+    return res
+
 def _transform_impl(item, path, path_idx=0):
     if not item:
         return item
     if path_idx == len(path):
         dt = pendulum.parse(item).in_timezone("UTC")
-        return dt.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        return safe_strftime(dt)
     _check_type(item, path, path_idx)
     path_item = path[path_idx]
     for k, v in path_item.iterate(item):
