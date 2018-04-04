@@ -18,7 +18,7 @@
         "type": ["null", "string"]
     },
     "balance": {
-        "type": ["null", "string"]
+        "type": ["null", "string","number"]
     },
     "accountNumber": {
         "type": ["null", "string"]
@@ -27,7 +27,7 @@
         "type": ["null", "string"]
     },
     "availableBalance": {
-        "type": ["null", "string"]
+        "type": ["null", "string","number"]
     },
     "iban": {
         "type": ["null", "string"]
