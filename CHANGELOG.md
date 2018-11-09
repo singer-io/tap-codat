@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.1
+  * Update version of `requests` to `0.20.0` in response to CVE 2018-18074
+
 ## 0.3.0
   * Adds companyId as a primary key to all streams [#4](https://github.com/singer-io/tap-codat/pull/4)
   * Updates balance and availableBalance to be converted to numbers before using a string []()
