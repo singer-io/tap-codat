@@ -2,7 +2,7 @@
 
 This is a [Singer](https://singer.io) tap that produces JSON-formatted data
 following the [Singer
-spec](https://github.com/singer-io/getting-started/blob/master/SPEC.md).
+spec](https://github.com/singer-io/getting-started/blob/master/docs/SPEC.md).
 
 This tap:
 
@@ -31,7 +31,7 @@ This tap:
 2. Get an API key
 
    Refer to the Codat documentation
-   [here](https://docs.codat.io/dedfd4e4-c241-4cb0-8001-f19eaf32d723/?python#authentication).
+   [here](https://docs.codat.io/docs/your-first-call-to-the-api-using-api-explorer).
 
 3. Create the config file
 
@@ -58,7 +58,7 @@ This tap:
     tap-codat -c config.json -d
 
    See the Singer docs on discovery mode
-   [here](https://github.com/singer-io/getting-started/blob/master/BEST_PRACTICES.md#discover-mode-and-connection-checks).
+   [here](https://github.com/singer-io/getting-started/blob/master/docs/DISCOVERY_MODE.md).
 
 5. Run the Tap in Sync Mode
 
