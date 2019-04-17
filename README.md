@@ -8,18 +8,18 @@ This tap:
 
 - Pulls raw data from [Codat](https://www.codat.io/)
 - Extracts the following resources:
-  - Accounts (Undocumented at the time of this writing)
-  - [Companies](https://docs.codat.io/dedfd4e4-c241-4cb0-8001-f19eaf32d723/?python#companies)
-  - [Balance Sheets](https://docs.codat.io/dedfd4e4-c241-4cb0-8001-f19eaf32d723/?python#balance-sheet)
-  - [Bank Statements](https://docs.codat.io/dedfd4e4-c241-4cb0-8001-f19eaf32d723/?python#bank-statements)
-  - [Bills](https://docs.codat.io/dedfd4e4-c241-4cb0-8001-f19eaf32d723/?python#bills)
-  - [Company Info](https://docs.codat.io/dedfd4e4-c241-4cb0-8001-f19eaf32d723/?python#company-info)
-  - [Credit Notes](https://docs.codat.io/dedfd4e4-c241-4cb0-8001-f19eaf32d723/?python#credit-notes)
-  - [Customers](https://docs.codat.io/dedfd4e4-c241-4cb0-8001-f19eaf32d723/?python#customers)
-  - [Invoices](https://docs.codat.io/dedfd4e4-c241-4cb0-8001-f19eaf32d723/?python#invoices)
-  - [Payments](https://docs.codat.io/dedfd4e4-c241-4cb0-8001-f19eaf32d723/?python#payments)
-  - [Profit and Loss](https://docs.codat.io/dedfd4e4-c241-4cb0-8001-f19eaf32d723/?python#profit-and-loss)
-  - [Suppliers](https://docs.codat.io/dedfd4e4-c241-4cb0-8001-f19eaf32d723/?python#suppliers)
+  - [Accounts](https://docs.codat.io/reference/accounts)
+  - [Companies](https://docs.codat.io/reference/companies)
+  - [Balance Sheets](https://docs.codat.io/reference/financials#financials_balancesheet)
+  - [Bank Statements](https://docs.codat.io/reference/bankstatements)
+  - [Bills](https://docs.codat.io/reference/bills)
+  - [Company Info](https://docs.codat.io/reference/info)
+  - [Credit Notes](https://docs.codat.io/reference/creditnotes)
+  - [Customers](https://docs.codat.io/reference/customers)
+  - [Invoices](https://docs.codat.io/reference/invoices)
+  - [Payments](https://docs.codat.io/reference/payments)
+  - [Profit and Loss](https://docs.codat.io/reference/financials#financials_profitandloss)
+  - [Suppliers](https://docs.codat.io/reference/suppliers)
 - Outputs the schema for each resource
 
 ## Quick Start
