@@ -42,14 +42,34 @@ def check_credentials_are_authorized(ctx):
 def discover(ctx):
     check_credentials_are_authorized(ctx)
     catalog = Catalog([])
+
     for stream in streams_.all_streams:
-        schema = Schema.from_dict(load_schema(ctx, stream.tap_stream_id),
-                                  inclusion="automatic")
+        schema = Schema.from_dict(load_schema(ctx, stream.tap_stream_id))
+
+        metadata = [{
+            'breadcrumb': (),
+            'metadata': {
+                'table-key-properties' : stream.pk_fields
+            }
+        }]
+
+        for k in schema['properties']:
+            if k in stream.pk_fields:
+                field_mdata = {'inclusion': 'automatic'}
+            else:
+                field_mdata = {'inclusion': 'available'}
+
+            metadata.append({
+                'breadcrumb': ('properties', k),
+                'metadata': field_mdata
+            })
+
         catalog.streams.append(CatalogEntry(
             stream=stream.tap_stream_id,
             tap_stream_id=stream.tap_stream_id,
             key_properties=stream.pk_fields,
             schema=schema,
+            metadata=metadata
         ))
     return catalog
 
