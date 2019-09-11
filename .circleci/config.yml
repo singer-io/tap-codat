@@ -1,0 +1,41 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: 218546966473.dkr.ecr.us-east-1.amazonaws.com/circle-ci:tap-tester
+    steps:
+      - checkout
+      - run:
+          name: 'Setup virtual env'
+          command: |
+            virtualenv -p python3 ~/.virtualenvs/tap-codat
+            source ~/.virtualenvs/tap-codat/bin/activate
+            pip install .
+            pip install pylint
+            pylint tap_codat -d C,R,W
+      - run:
+          name: 'JSON Validator'
+          command: |
+            source /usr/local/share/virtualenvs/tap-tester/bin/activate
+            stitch-validate-json ~/.virtualenvs/tap-codat/lib/python3.5/site-packages/tap_codat/schemas/*.json
+      - run:
+          name: 'Unit Tests'
+          command: |
+            source ~/.virtualenvs/tap-codat/bin/activate
+            pip install nose
+            nosetests
+workflows:
+  version: 2
+  commit:
+    jobs:
+      - build
+  build_daily:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - build
