@@ -2,7 +2,7 @@
 import os
 import json
 import singer
-from singer import utils
+from singer import utils, metadata
 from singer.catalog import Catalog, CatalogEntry, Schema
 from . import streams as streams_
 from .context import Context
@@ -44,32 +44,17 @@ def discover(ctx):
     catalog = Catalog([])
 
     for stream in streams_.all_streams:
-        schema = Schema.from_dict(load_schema(ctx, stream.tap_stream_id))
-
-        metadata = [{
-            'breadcrumb': (),
-            'metadata': {
-                'table-key-properties' : stream.pk_fields
-            }
-        }]
-
-        for k in schema['properties']:
-            if k in stream.pk_fields:
-                field_mdata = {'inclusion': 'automatic'}
-            else:
-                field_mdata = {'inclusion': 'available'}
-
-            metadata.append({
-                'breadcrumb': ('properties', k),
-                'metadata': field_mdata
-            })
+        schema_dict = load_schema(ctx, stream.tap_stream_id)
+        schema = Schema.from_dict(schema_dict)
+        mdata = metadata.get_standard_metadata(schema_dict,
+                                               key_properties=stream.pk_fields)
 
         catalog.streams.append(CatalogEntry(
             stream=stream.tap_stream_id,
             tap_stream_id=stream.tap_stream_id,
             key_properties=stream.pk_fields,
             schema=schema,
-            metadata=metadata
+            metadata=mdata
         ))
     return catalog
 
