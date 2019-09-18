@@ -2,7 +2,7 @@
 import os
 import json
 import singer
-from singer import utils
+from singer import utils, metadata
 from singer.catalog import Catalog, CatalogEntry, Schema
 from . import streams as streams_
 from .context import Context
@@ -42,14 +42,23 @@ def check_credentials_are_authorized(ctx):
 def discover(ctx):
     check_credentials_are_authorized(ctx)
     catalog = Catalog([])
+
     for stream in streams_.all_streams:
-        schema = Schema.from_dict(load_schema(ctx, stream.tap_stream_id),
-                                  inclusion="automatic")
+        schema_dict = load_schema(ctx, stream.tap_stream_id)
+        schema = Schema.from_dict(schema_dict)
+        mdata = metadata.get_standard_metadata(schema_dict,
+                                               key_properties=stream.pk_fields)
+        mdata = metadata.to_map(mdata)
+
+        for field_name in schema_dict['properties'].keys():
+            mdata = metadata.write(mdata, ('properties', field_name), 'inclusion', 'automatic')
+
         catalog.streams.append(CatalogEntry(
             stream=stream.tap_stream_id,
             tap_stream_id=stream.tap_stream_id,
             key_properties=stream.pk_fields,
             schema=schema,
+            metadata=metadata.to_list(mdata)
         ))
     return catalog
 
