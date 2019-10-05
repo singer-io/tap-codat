@@ -1,0 +1,63 @@
+{
+    "type": "object",
+    "properties": {
+        "companyId": {
+          "type": "string"
+        },
+        "id": {
+            "type": ["string"]
+        },
+        "supplierRef": {
+          "$ref": "suppliers"
+        },
+        "totalAmount": {
+            "type": ["null", "number"]
+        },
+        "currency": {
+            "type": ["null", "string"]
+        },
+        "currencyRate": {
+            "type": ["null", "number"]
+        },
+        "date": {
+            "type": ["null", "string"]
+        },
+        "note": {
+            "type": ["null", "string"]
+        },
+        "lines": {
+            "type": ["null", "array"],
+            "items": {
+                "type": ["object"],
+                "properties": {
+                    "amount": {
+                        "type": ["null", "number"]
+                    },
+                    "links": {
+                        "type": ["null", "array"],
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": ["null", "string"]
+                                },
+                                "id": {
+                                    "type": ["null", "string"]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "modifiedDate": {
+            "type": ["null", "string"]
+        },
+        "sourceModifiedDate": {
+            "type": ["null", "string"]
+        }
+    },
+    "tap_schema_dependencies": [
+        "suppliers"
+    ]
+}

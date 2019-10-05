@@ -1,0 +1,82 @@
+{
+    "type": "object",
+    "properties": {
+        "companyId": {
+          "type": "string"
+        },
+        "accountName": {
+            "type": ["string"]
+        },
+        "id": {
+            "type": ["null", "string"]
+        },
+        "fromDate": {
+            "type": ["null", "string"]
+        },
+        "toDate": {
+            "type": ["null", "string"]
+        },
+        "sortCode": {
+            "type": ["null", "string"]
+        },
+        "accountNumber": {
+            "type": ["null", "string"]
+        },
+        "iban": {
+            "type": ["null", "string"]
+        },
+        "currency": {
+            "type": ["null", "string"]
+        },
+        "balance": {
+            "type": ["null", "number"]
+        },
+        "availableBalance": {
+            "type": ["null", "number"]
+        },
+        "modifiedDate": {
+            "type": ["null", "string"]
+        },
+        "sourceModifiedDate": {
+            "type": ["null", "string"]
+        },
+        "transactions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "companyId": {
+                      "type": "string"
+                    },
+                    "parentId": {
+                        "type": "string"
+                    },
+                    "date": {
+                        "type": ["null", "string"]
+                    },
+                    "description": {
+                        "type": ["null", "string"]
+                    },
+                    "reconciled": {
+                        "type": ["null", "boolean"]
+                    },
+                    "amount": {
+                        "type": ["null", "number"]
+                    },
+                    "balance": {
+                        "type": ["null", "number"]
+                    },
+                    "transactionType": {
+                        "type": ["null", "string"]
+                    },
+                    "modifiedDate": {
+                        "type": ["null", "string"]
+                    },
+                    "sourceModifiedDate": {
+                        "type": ["null", "string"]
+                    }
+                }
+            }
+        }
+    }
+}
