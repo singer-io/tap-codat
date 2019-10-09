@@ -34,6 +34,9 @@
         "availableBalance": {
             "type": ["null", "number"]
         },
+        "overdraftLimit": {
+            "type": ["null", "number"]
+        },
         "modifiedDate": {
             "type": ["null", "string"]
         },
