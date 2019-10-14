@@ -32,58 +32,6 @@
     "iban": {
         "type": ["null", "string"]
     },
-    "details": {
-      "type": [
-        "null",
-        "array"
-      ],
-      "items": {
-        "type": [
-          "null",
-          "object"
-        ],
-        "properties": {
-          "balance": {
-            "type": [
-              "null",
-              "number"
-            ]
-          },
-          "id": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "date": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "amount": {
-            "type": [
-              "null",
-              "number"
-            ]
-          },
-          "description": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "reconciled": {
-            "type": [
-              "null",
-              "boolean"
-            ]
-          }
-        },
-        "additionalProperties": true
-      }
-    },
     "toDate": {
       "type": [
         "null",

@@ -37,6 +37,8 @@ class capture_state(ContextDecorator):
         state_dt = get_last_record_value_for_table(self.ctx.state, company_stream)
         if state_dt:
             return state_dt.strftime('%Y-%m-%dT%H:%M:%S.00Z')
+        else:
+            return self.ctx.config.get('start_date')
 
     def update(self, records):
         if self.field_name is None:
@@ -152,15 +154,18 @@ class Basic(Stream):
             params = self.get_params(ctx, sync)
             resp = ctx.client.GET({"path": path, "params": params}, self.tap_stream_id)
             records = self.transform_dts(ctx, self.format_response(resp, company))
+
+            for stream in self.substreams:
+                stream.sync_children(ctx, path, company, records)
+
             sync.update(records)
             self.write_records(records)
 
     def get_incremental_filter(self, ctx, sync):
         max_dt = sync.get_max()
         if max_dt and self.state_filter is not None:
-            state = max_dt.strftime('%Y-%m-%dT%H:%M:%S.00Z')
             return {
-                "query": "{}>{}".format(self.state_filter, state)
+                "query": "{}>{}".format(self.state_filter, max_dt)
             }
         else:
             return {}
@@ -169,36 +174,56 @@ class Basic(Stream):
         return self.get_incremental_filter(ctx, sync)
 
 
-class BankAccounts(Basic):
-    def sync_for_company(self, ctx, company):
-        with capture_state(
-            ctx,
-            self.tap_stream_id,
-            self.state_filter,
-            company['id']
-        ) as sync:
-            path = self.path.format(companyId=company["id"])
-            params = self.get_params(ctx, sync)
-            resp = ctx.client.GET({"path": path, "params": params}, self.tap_stream_id)
-            accounts = self.transform_dts(ctx, self.format_response(resp, company))
+class BankStatementLines(Basic):
+    def sync_children(self, ctx, parent_path, company, bank_statements):
+        for i, bank_statement in enumerate(bank_statements):
+            LOGGER.info("Syncing {} for Bank Statement {} of {}".format(
+                self.tap_stream_id,
+                i + 1,
+                len(bank_statements)
+            ))
 
-            for account in accounts:
-                account['transactions'] = self.sync_transactions(ctx, path, account)
 
-            sync.update(accounts)
-            self.write_records(accounts)
+            lines = bank_statement.pop('details', [])
+            self.sync_lines_for_statement(ctx, company, bank_statement, lines)
 
-    # Transactions cannot be synced independently because they do not have
-    # a property that can be used as a primary key.
-    def sync_transactions(self, ctx, parent_path, bank_account):
+    def sync_lines_for_statement(self, ctx, company, bank_statement, lines):
+        for i, line in enumerate(lines):
+            line['companyId'] = company['id']
+            line['accountName'] = bank_statement['accountName']
+            line['_lineIndex'] = i
+
+        self.write_records(lines)
+
+
+class BankAccountTransactions(Basic):
+    def sync_children(self, ctx, parent_path, company, bank_accounts):
+        for i, bank_account in enumerate(bank_accounts):
+            LOGGER.info("Syncing {} for Bank Account {} of {}".format(
+                self.tap_stream_id,
+                i + 1,
+                len(bank_accounts)
+            ))
+
+            self.sync_transactions_for_account(ctx, parent_path, company, bank_account)
+
+    def sync_transactions_for_account(self, ctx, parent_path, company, bank_account):
         if 'id' not in bank_account:
-            return []
-        path = parent_path + "/{}/transactions".format(bank_account['id'])
+            return
+
+        path = parent_path + self.path.format(**bank_account)
         resp = ctx.client.GET({"path": path}, self.tap_stream_id)
+
         if resp is None:
-            return []
-        else:
-            return self.transform_dts(ctx, resp)
+            return
+
+        transactions = self.transform_dts(ctx, resp)
+        for i, transaction in enumerate(transactions):
+            transaction['companyId'] = company['id']
+            transaction['bankAccountId'] = bank_account['id']
+            transaction['_transactionIndex'] = i
+
+        self.write_records(transactions)
 
 
 class Events(Basic):
@@ -206,7 +231,7 @@ class Events(Basic):
         max_dt = sync.get_max()
         if max_dt:
             return {
-                "fromDate": max_dt.strftime('%Y-%m-%dT%H:%M:%S.00Z')
+                "fromDate": max_dt
             }
         else:
             return {}
@@ -237,6 +262,11 @@ class Paginated(Basic):
             path = self.path.format(companyId=company["id"])
             page = 1
             while True:
+                LOGGER.info("Syncing page {} for {} stream (company={})".format(
+                    page,
+                    self.tap_stream_id,
+                    company['id']
+                ))
                 params = self.get_params(ctx, sync, page)
                 resp = ctx.client.GET({"path": path, "params": params}, self.tap_stream_id)
                 records = self.transform_dts(ctx, self.format_response(resp, company))
@@ -314,13 +344,22 @@ all_streams = [
           "/companies/{companyId}/data/accounts",
           collection_key="accounts",
           state_filter="modifiedDate"),
-    BankAccounts("bank_accounts",
+    Basic("bank_accounts",
           ["accountName", "companyId"],
-          "/companies/{companyId}/data/bankAccounts"),
+          "/companies/{companyId}/data/bankAccounts",
+          substreams=[BankAccountTransactions(
+              "bank_account_transactions",
+              ["companyId", "bankAccountId", "_transactionIndex"],
+              "/{id}/transactions",
+              returns_collection=False)]),
     Basic("bank_statements",
           ["accountName", "companyId"],
           "/companies/{companyId}/data/bankStatements",
-          state_filter="modifiedDate"),
+          state_filter="modifiedDate",
+          substreams=[BankStatementLines(
+              "bank_statement_lines",
+              ["companyId", "accountName", "_lineIndex"],
+              None)]),
     Basic("bills",
           ["id", "companyId"],
           "/companies/{companyId}/data/bills",
@@ -373,7 +412,7 @@ all_streams = [
               ["id", "companyId"],
               "/companies/{companyId}/data/items",
               collection_key="results",
-              state_filter="modifiedDate"),  # TODO : Test this
+              state_filter="modifiedDate"),
     Paginated("tax_rates",
               ["id", "companyId"],
               "/companies/{companyId}/data/taxRates",
