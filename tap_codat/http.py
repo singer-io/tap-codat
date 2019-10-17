@@ -42,9 +42,9 @@ class Client(object):
         with metrics.http_request_timer(tap_stream_id) as timer:
             response = self.prepare_and_send(request)
             timer.tags[metrics.Tag.http_status_code] = response.status_code
-        if response.status_code in [429, 503]:
+        if response.status_code in [429, 500, 501, 502, 503]:
             raise RateLimitException()
-        if response.status_code == 404:
+        elif response.status_code == 404:
             return None
         response.raise_for_status()
         return response.json()
