@@ -299,6 +299,39 @@ class Paginated(Basic):
         return params
 
 
+class BankAccounts(Paginated):
+    def sync_for_company(self, ctx, company):
+        with capture_state(
+            ctx,
+            self.tap_stream_id,
+            self.state_filter,
+            company['id']
+        ) as sync:
+            for conn in company.get('dataConnections', []):
+                connId = conn.get('id')
+                if not connId:
+                    continue
+                path = self.path.format(companyId=company["id"], connectionId=connId)
+                page = 1
+                while True:
+                    LOGGER.info("Syncing page {} for {} stream (company={}, conn={})".format(
+                        page,
+                        self.tap_stream_id,
+                        company['id'],
+                        connId
+                    ))
+                    params = self.get_params(ctx, sync, page)
+                    resp = ctx.client.GET({"path": path, "params": params}, self.tap_stream_id)
+                    records = self.transform_dts(ctx, self.format_response(resp, company, {
+                        "connectionId": connId
+                    }))
+                    sync.update(records)
+                    self.write_records(records)
+                    if len(records) < PAGE_SIZE:
+                        break
+                    page += 1
+
+
 class Financials(Basic):
     def sync_for_company(self, ctx, company):
         path = self.path.format(companyId=company["id"])
@@ -367,9 +400,10 @@ all_streams = [
           "/companies/{companyId}/data/accounts",
           collection_key="accounts",
           state_filter="modifiedDate"),
-    Basic("bank_accounts",
-          ["accountName", "companyId"],
-          "/companies/{companyId}/data/bankAccounts",
+    BankAccounts("bank_accounts",
+          ["accountName", "companyId", "connectionId"],
+          "/companies/{companyId}/connections/{connectionId}/data/bankAccounts",
+          collection_key='results',
           substreams=[BankAccountTransactions(
               "bank_account_transactions",
               ["companyId", "bankAccountId", "_transactionIndex"],

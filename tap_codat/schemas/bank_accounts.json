@@ -10,6 +10,9 @@
         "id": {
             "type": ["null", "string"]
         },
+        "connectionId": {
+            "type": ["null", "string"]
+        },
         "fromDate": {
             "type": ["null", "string"]
         },
