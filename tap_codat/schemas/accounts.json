@@ -14,6 +14,12 @@
         "string"
       ]
     },
+    "description": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
     "nominalCode": {
       "type": [
         "null",
@@ -55,10 +61,28 @@
         "string"
       ]
     },
+    "fullyQualifiedCategory": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
     "currentBalance": {
       "type": [
         "null",
         "number"
+      ]
+    },
+    "modifiedDate": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "sourceModifiedDate": {
+      "type": [
+        "null",
+        "string"
       ]
     }
   },

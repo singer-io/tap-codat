@@ -34,9 +34,31 @@ def load_and_write_schema(ctx, stream):
         stream.pk_fields,
     )
 
+    for substream in stream.substreams:
+        load_and_write_schema(ctx, substream)
+
 
 def check_credentials_are_authorized(ctx):
     streams_.companies.raw_fetch(ctx)
+
+
+def add_stream_to_catalog(catalog, ctx, stream):
+    schema_dict = load_schema(ctx, stream.tap_stream_id)
+    schema = Schema.from_dict(schema_dict)
+    mdata = metadata.get_standard_metadata(schema_dict,
+                                           key_properties=stream.pk_fields)
+    mdata = metadata.to_map(mdata)
+
+    for field_name in schema_dict['properties'].keys():
+        mdata = metadata.write(mdata, ('properties', field_name), 'inclusion', 'automatic')
+
+    catalog.streams.append(CatalogEntry(
+        stream=stream.tap_stream_id,
+        tap_stream_id=stream.tap_stream_id,
+        key_properties=stream.pk_fields,
+        schema=schema,
+        metadata=metadata.to_list(mdata)
+    ))
 
 
 def discover(ctx):
@@ -44,22 +66,10 @@ def discover(ctx):
     catalog = Catalog([])
 
     for stream in streams_.all_streams:
-        schema_dict = load_schema(ctx, stream.tap_stream_id)
-        schema = Schema.from_dict(schema_dict)
-        mdata = metadata.get_standard_metadata(schema_dict,
-                                               key_properties=stream.pk_fields)
-        mdata = metadata.to_map(mdata)
+        add_stream_to_catalog(catalog, ctx, stream)
+        for substream in stream.substreams:
+            add_stream_to_catalog(catalog, ctx, substream)
 
-        for field_name in schema_dict['properties'].keys():
-            mdata = metadata.write(mdata, ('properties', field_name), 'inclusion', 'automatic')
-
-        catalog.streams.append(CatalogEntry(
-            stream=stream.tap_stream_id,
-            tap_stream_id=stream.tap_stream_id,
-            key_properties=stream.pk_fields,
-            schema=schema,
-            metadata=metadata.to_list(mdata)
-        ))
     return catalog
 
 

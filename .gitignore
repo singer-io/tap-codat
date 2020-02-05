@@ -101,3 +101,9 @@ rsa-key
 tags
 singer-check-tap-data
 state.json
+
+out.json
+persist.json
+stitch/
+catalog.json
+get_catalog.py
