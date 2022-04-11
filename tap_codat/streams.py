@@ -138,7 +138,7 @@ class Companies(Stream):
 
     def fetch_into_cache(self, ctx):
         resp = self.raw_fetch(ctx)
-        ctx.cache["companies"] = self.transform_dts(ctx, resp["companies"])
+        ctx.cache["companies"] = self.transform_dts(ctx, resp["results"])
 
     def sync(self, ctx):
         self.write_records(ctx.cache["companies"])

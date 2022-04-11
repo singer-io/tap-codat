@@ -1,0 +1,31 @@
+version: 1
+default_environment: dev
+project_id: b7cc76aa-e15c-47a3-b70f-ae450b5ce9c4
+plugins:
+  extractors:
+  - name: tap-codat
+    namespace: tap_codat
+    pip_url: pip install -e .
+    executable: tap-codat
+    capabilities:
+    - properties
+    - discover
+    settings:
+    - name: api_key
+      kind: password
+    config:
+      start_date: "2021-04-01"
+      uat_urls: "True"
+    select:
+    - '!bank_accounts.*'
+    - '!bank_statements.*'
+    - '!connections.*'
+    - '!journal_entries.*'
+    - '!items.*'
+    - '!tags.*'
+    - '!tax_rates.*'
+    - '*.*'
+environments:
+- name: dev
+- name: staging
+- name: prod

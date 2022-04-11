@@ -135,5 +135,16 @@ Then `name_0` will always be either `A` or `E`, `name_1` will always be `B`,
 `D`, or `F` and `name_2` will only ever be `C`.
 
 ---
+# Meltano Steps
+There's an included meltano.yml file that worked for a test account (Note there are multiple streams being ignored due to errors).
+
+To get Meltano running
+1. pipx install meltano
+1. meltano install
+1. Set your api_key (create a .env file, and add TAP_CODAT_API_KEY="api_key_here")
+1. meltano invoke tap-codat
+
+
+
 
 Copyright &copy; 2017 Stitch
