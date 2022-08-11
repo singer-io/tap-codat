@@ -79,7 +79,6 @@ celerybeat-schedule
 .env
 
 # virtualenv
-.venv/
 venv/
 ENV/
 
@@ -97,8 +96,6 @@ ENV/
 env.sh
 config.json
 .autoenv.zsh
-.meltano/**
-.env
 
 rsa-key
 tags
