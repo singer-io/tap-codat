@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.1
+  * Fix KeyError on `companies` stream due to API response key being renamed to `results` [#14](https://github.com/singer-io/tap-codat/pull/14)
+
 ## 0.5.0
 **Functional changes:**
 - Retry requests which fail with a 500, 501, or 502 error code
