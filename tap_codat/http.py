@@ -1,8 +1,10 @@
 from base64 import b64encode
 import requests
+import singer
 from singer import metrics
 import backoff
 
+LOGGER = singer.get_logger()
 BASE_URL = "https://api.codat.io"
 UAT_URL = "https://api-uat.codat.io"
 
@@ -44,6 +46,10 @@ class Client(object):
             timer.tags[metrics.Tag.http_status_code] = response.status_code
         if response.status_code in [429, 500, 501, 502, 503]:
             raise RateLimitException()
+        elif response.status_code == 409:
+            # caused by broken connection on codat's side
+            LOGGER.warning(f"Failed to fetch: {response.reason}")
+            return None           
         elif response.status_code == 404:
             return None
         response.raise_for_status()
