@@ -137,8 +137,9 @@ class Companies(Stream):
         return ctx.client.GET({"path": self.path}, self.tap_stream_id)
 
     def fetch_into_cache(self, ctx):
-        resp = self.raw_fetch(ctx)
+        resp = self.raw_fetch(ctx)   
         ctx.cache["companies"] = self.transform_dts(ctx, resp["results"])
+
 
     def sync(self, ctx):
         self.write_records(ctx.cache["companies"])
@@ -395,10 +396,10 @@ def trunc_payment_allocation_notes(invoices):
 companies = Companies("companies", ["id"], "/companies")
 all_streams = [
     companies,
-    Basic("accounts",
+    Paginated("accounts",
           ["id", "companyId"],
           "/companies/{companyId}/data/accounts",
-          collection_key="accounts",
+          collection_key="results",
           state_filter="modifiedDate"),
     BankAccounts("bank_accounts",
           ["accountName", "companyId", "connectionId"],
@@ -417,34 +418,34 @@ all_streams = [
               "bank_statement_lines",
               ["companyId", "accountName", "_lineIndex"],
               None)]),
-    Basic("bills",
+    Paginated("bills",
           ["id", "companyId"],
           "/companies/{companyId}/data/bills",
-          collection_key="bills",
+          collection_key="results",
           state_filter="modifiedDate"),
     Basic("company_info",
           ["companyId"],
           "/companies/{companyId}/data/info",
           returns_collection=False),  # Not filterable
-    Basic("credit_notes",
+    Paginated("credit_notes",
           ["id", "companyId"],
           "/companies/{companyId}/data/creditNotes",
-          collection_key="creditNotes",
+          collection_key="results",
           state_filter="modifiedDate"),
     Paginated("customers",
           ["id", "companyId"],
           "/companies/{companyId}/data/customers",
-          collection_key="customers",
+          collection_key="results",
           state_filter="modifiedDate"),
     Paginated("payments",
           ["id", "companyId"],
           "/companies/{companyId}/data/payments",
-          collection_key="payments",
-          state_filter="modifiedDate"),
-    Basic("suppliers",
+          collection_key="results",
+          state_filter="modifiedDate"),         
+    Paginated("suppliers",
           ["id", "companyId"],
           "/companies/{companyId}/data/suppliers",
-          collection_key="suppliers",
+          collection_key="results",
           state_filter="modifiedDate"),
     Basic("connections",
           ["id", "companyId"],
