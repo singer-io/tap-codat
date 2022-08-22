@@ -1,7 +1,7 @@
 # Changelog
 
 ## 0.5.2
- * Fix `collection_key` on paginated endpoints due to API response key being renamed to `results` [#18](https://github.com/singer-io/tap-codat/pull/18)
+ * Fix `collection_key` on several streams due to API response key being renamed to `results` [#18](https://github.com/singer-io/tap-codat/pull/18)
 
 ## 0.5.1
   * Fix KeyError on `companies` stream due to API response key being renamed to `results` [#14](https://github.com/singer-io/tap-codat/pull/14)

@@ -94,8 +94,10 @@ def main_impl():
     ctx = Context(args.config, args.state)
     if args.discover:
         discover(ctx).dump()
+        print()
     else:
-        ctx.catalog = Catalog.from_dict(args.properties) if args.properties else discover(ctx)
+        ctx.catalog = Catalog.from_dict(args.properties) \
+            if args.properties else discover(ctx)
         sync(ctx)
 
 

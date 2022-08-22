@@ -33,7 +33,8 @@ class Context(object):
     def catalog(self, catalog):
         self._catalog = catalog
         self.selected_stream_ids = set(
-            [s.tap_stream_id for s in catalog.streams]
+            [s.tap_stream_id for s in catalog.streams
+             if s.is_selected()]
         )
         self.schema_dt_paths = {
             stream.tap_stream_id: find_dt_paths(stream.schema)

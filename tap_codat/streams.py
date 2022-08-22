@@ -137,9 +137,8 @@ class Companies(Stream):
         return ctx.client.GET({"path": self.path}, self.tap_stream_id)
 
     def fetch_into_cache(self, ctx):
-        resp = self.raw_fetch(ctx)   
+        resp = self.raw_fetch(ctx)
         ctx.cache["companies"] = self.transform_dts(ctx, resp["results"])
-
 
     def sync(self, ctx):
         self.write_records(ctx.cache["companies"])
@@ -441,7 +440,7 @@ all_streams = [
           ["id", "companyId"],
           "/companies/{companyId}/data/payments",
           collection_key="results",
-          state_filter="modifiedDate"),         
+          state_filter="modifiedDate"),
     Paginated("suppliers",
           ["id", "companyId"],
           "/companies/{companyId}/data/suppliers",
