@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: 218546966473.dkr.ecr.us-east-1.amazonaws.com/circle-ci:tap-tester
+      - image: 218546966473.dkr.ecr.us-east-1.amazonaws.com/circle-ci:stitch-tap-tester
     steps:
       - checkout
       - run:
@@ -17,7 +17,7 @@ jobs:
           name: 'JSON Validator'
           command: |
             source /usr/local/share/virtualenvs/tap-tester/bin/activate
-            stitch-validate-json ~/.virtualenvs/tap-codat/lib/python3.5/site-packages/tap_codat/schemas/*.json
+            stitch-validate-json ~/.virtualenvs/tap-codat/lib/python3.9/site-packages/tap_codat/schemas/*.json
       - run:
           name: 'Unit Tests'
           command: |
