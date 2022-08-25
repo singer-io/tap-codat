@@ -99,6 +99,7 @@ def main_impl():
         ctx.catalog = Catalog.from_dict(args.properties) \
             if args.properties else discover(ctx)
         sync(ctx)
+        ctx.dump_logs()
 
 
 def main():

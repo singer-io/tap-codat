@@ -66,3 +66,8 @@ class Context(object):
 
     def write_state(self):
         singer.write_state(self.state)
+
+    def dump_logs(self):
+        """Write accumulated logs to std out."""
+        # Client logs
+        self.client.write_and_clear_accumulated_logs()
