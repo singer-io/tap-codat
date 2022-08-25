@@ -17,7 +17,7 @@ jobs:
           name: 'JSON Validator'
           command: |
             source /usr/local/share/virtualenvs/tap-tester/bin/activate
-            stitch-validate-json ~/.virtualenvs/tap-codat/lib/python3.5/site-packages/tap_codat/schemas/*.json
+            stitch-validate-json ~/.virtualenvs/tap-codat/lib/python3.9/site-packages/tap_codat/schemas/*.json
       - run:
           name: 'Unit Tests'
           command: |
