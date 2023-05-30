@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.3
+  * Dependabot update [#22](https://github.com/singer-io/tap-codat/pull/22)
+
 ## 0.5.2
  * Fix `collection_key` on several streams due to API response key being renamed to `results` [#18](https://github.com/singer-io/tap-codat/pull/18)
   * Don't hard fail syncing on 409 errors, instead accumulate logs and continue syncing other companies. [#19](https://github.com/singer-io/tap-codat/pull/19/files)
