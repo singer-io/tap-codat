@@ -11,7 +11,7 @@ setup(
     py_modules=["tap_codat"],
     install_requires=[
         "singer-python==5.8.1",
-        "requests==2.31.0",
+        "requests==2.32.0",
         "pendulum==1.2.0"
     ],
     entry_points="""
