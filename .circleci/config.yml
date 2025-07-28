@@ -2,28 +2,34 @@ version: 2
 jobs:
   build:
     docker:
-      - image: 218546966473.dkr.ecr.us-east-1.amazonaws.com/circle-ci:stitch-tap-tester
+      - image: 218546966473.dkr.ecr.us-east-1.amazonaws.com/circle-ci:stitch-tap-tester-uv
     steps:
       - checkout
       - run:
           name: 'Setup virtual env'
           command: |
-            virtualenv -p python3 ~/.virtualenvs/tap-codat
-            source ~/.virtualenvs/tap-codat/bin/activate
-            pip install .
-            pip install pylint
-            pylint tap_codat -d C,R,W
+            uv venv --python 3.9 /usr/local/share/virtualenvs/tap-codat
+            source /usr/local/share/virtualenvs/tap-codat
+            uv pip install .
       - run:
           name: 'JSON Validator'
           command: |
             source /usr/local/share/virtualenvs/tap-tester/bin/activate
             stitch-validate-json ~/.virtualenvs/tap-codat/lib/python3.9/site-packages/tap_codat/schemas/*.json
       - run:
+          name: 'pylint'
+          command: |
+            source /usr/local/share/virtualenvs/tap-codat
+            uv pip install pylint
+            pylint tap_codat -d C,R,W
+      - run:
           name: 'Unit Tests'
           command: |
-            source ~/.virtualenvs/tap-codat/bin/activate
-            pip install nose
-            nosetests
+            source /usr/local/share/virtualenvs/tap-codat
+            uv pip install pytest coverage
+            coverage run -m pytest test
+            coverage html
+
 workflows:
   version: 2
   commit:
