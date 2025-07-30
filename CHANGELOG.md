@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.6.0
+  * Update libraries [#26](https://github.com/singer-io/tap-codat/pull/26)
+
 ## 0.5.3
   * Dependabot update [#22](https://github.com/singer-io/tap-codat/pull/22)
 

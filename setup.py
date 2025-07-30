@@ -10,9 +10,9 @@ setup(
     classifiers=["Programming Language :: Python :: 3 :: Only"],
     py_modules=["tap_codat"],
     install_requires=[
-        "singer-python==5.8.1",
-        "requests==2.31.0",
-        "pendulum==1.2.0"
+        "singer-python==6.1.1",
+        "requests==2.32.4",
+        "pendulum==3.1.0"
     ],
     entry_points="""
     [console_scripts]
