@@ -65,7 +65,7 @@ class Client(object):
             log_msg = f"failed to fetch due to {response.status_code} status code"
             LOGGER.warning(log_msg)
             self.logs.append(log)
-            return None
+            return {"results": []}
         response.raise_for_status()
         return response.json()
 
