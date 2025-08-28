@@ -2,6 +2,7 @@
 
 ## 0.6.0
   * Update libraries [#26](https://github.com/singer-io/tap-codat/pull/26)
+  * Bug fix: NoneType object has no attribute lower
 
 ## 0.5.3
   * Dependabot update [#22](https://github.com/singer-io/tap-codat/pull/22)
