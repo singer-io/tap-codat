@@ -49,6 +49,13 @@ def add_stream_to_catalog(catalog, ctx, stream):
                                            key_properties=stream.pk_fields)
     mdata = metadata.to_map(mdata)
 
+    if not stream.state_filter:
+        mdata = metadata.write(mdata, (), 'forced-replication-method', 'FULL_TABLE')
+
+    if hasattr(stream, 'parent_stream') and stream.parent_stream:
+        mdata = metadata.write(mdata, (), 'parent-tap-stream-id', stream.parent_stream.tap_stream_id)
+
+
     for field_name in schema_dict['properties'].keys():
         mdata = metadata.write(mdata, ('properties', field_name), 'inclusion', 'automatic')
 

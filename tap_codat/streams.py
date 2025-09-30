@@ -73,6 +73,9 @@ class Stream(object):
         else:
             self.substreams = []
 
+        for substream in self.substreams:
+            substream.parent_stream = self
+
         self.state_filter = state_filter
 
     def metrics(self, records):
@@ -491,4 +494,5 @@ all_streams = [
                returns_collection=False,
                custom_formatter=flatten_profit_and_loss),
 ]
+
 all_stream_ids = [s.tap_stream_id for s in all_streams]
