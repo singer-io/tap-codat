@@ -73,6 +73,9 @@ class Stream(object):
         else:
             self.substreams = []
 
+        for substream in self.substreams:
+            substream.parent_stream = self
+
         self.state_filter = state_filter
 
     def metrics(self, records):
