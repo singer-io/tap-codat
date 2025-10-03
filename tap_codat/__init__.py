@@ -45,7 +45,7 @@ def check_credentials_are_authorized(ctx):
 def add_stream_to_catalog(catalog, ctx, stream):
     schema_dict = load_schema(ctx, stream.tap_stream_id)
     schema = Schema.from_dict(schema_dict)
-    mdata = metadata.get_standard_metadata(schema_dict,key_properties=stream.pk_fields, replication_method="FULL_TABLE")
+    mdata = metadata.get_standard_metadata(schema_dict, key_properties=stream.pk_fields, replication_method=stream.replication_method)
     mdata = metadata.to_map(mdata)
 
     if hasattr(stream, 'parent_stream') and stream.parent_stream:
