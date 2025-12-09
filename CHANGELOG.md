@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.4
+  * Bump dependencies [#28](https://github.com/singer-io/tap-codat/pull/28)
+
 ## 0.5.3
   * Dependabot update [#22](https://github.com/singer-io/tap-codat/pull/22)
 
