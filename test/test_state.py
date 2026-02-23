@@ -4,6 +4,7 @@ from dateutil.parser import parse
 from tap_codat.state import (
     get_last_record_value_for_table,
     incorporate,
+    sanitize_bookmarks,
 )
 
 
@@ -202,6 +203,41 @@ class TestStateClearingNoEmptyObjects:
         assert result["bookmarks"]["invoices"] != {}
         assert result["bookmarks"]["invoices"]["company-1"] != {}
 
+    def test_incorporate_cleans_preexisting_empty_dict(self):
+        """incorporate must sanitize any pre-existing empty dict company
+        entries in the stream it's writing to."""
+        state = {
+            "bookmarks": {
+                "invoices": {
+                    "company-1": {},  # BAD - pre-existing
+                    "company-2": None,  # BAD - pre-existing
+                }
+            }
+        }
+        result = incorporate(state, "invoices", "company-3", "modifiedDate", "2024-01-01T00:00:00Z")
+        # The new company should be present
+        assert "company-3" in result["bookmarks"]["invoices"]
+        # The bad entries should have been cleaned up
+        assert "company-1" not in result["bookmarks"]["invoices"]
+        assert "company-2" not in result["bookmarks"]["invoices"]
+
+    def test_incorporate_cleans_preexisting_null(self):
+        """incorporate must sanitize any pre-existing null company entries."""
+        state = {
+            "bookmarks": {
+                "invoices": {
+                    "company-1": None,  # BAD
+                }
+            }
+        }
+        result = incorporate(state, "invoices", "company-1", "modifiedDate", "2024-01-01T00:00:00Z")
+        # Should overwrite null with a valid bookmark
+        assert result["bookmarks"]["invoices"]["company-1"]["last_record"] == "2024-01-01T00:00:00Z"
+        # No null or empty dict values anywhere
+        for cid, cval in result["bookmarks"]["invoices"].items():
+            assert cval is not None, f"Company '{cid}' is null"
+            assert cval != {}, f"Company '{cid}' is an empty dict"
+
     def test_no_offset_key_in_bookmarks(self):
         """Bookmarks should never contain an 'offset' key."""
         state = {}
@@ -212,3 +248,68 @@ class TestStateClearingNoEmptyObjects:
                 for company_key, company_val in stream_val.items():
                     if isinstance(company_val, dict):
                         assert "offset" not in company_val
+
+
+class TestSanitizeBookmarks:
+    """sanitize_bookmarks must clean up any pre-existing bad state."""
+
+    def test_removes_null_company_entries(self):
+        state = {
+            "bookmarks": {
+                "companies": {
+                    "comp-1": None,
+                    "comp-2": {"field": "modifiedDate", "last_record": "2024-01-01T00:00:00Z"},
+                }
+            }
+        }
+        result = sanitize_bookmarks(state)
+        assert "comp-1" not in result["bookmarks"]["companies"]
+        assert "comp-2" in result["bookmarks"]["companies"]
+
+    def test_removes_empty_dict_company_entries(self):
+        state = {
+            "bookmarks": {
+                "companies": {
+                    "comp-1": {},
+                    "comp-2": {"field": "modifiedDate", "last_record": "2024-01-01T00:00:00Z"},
+                }
+            }
+        }
+        result = sanitize_bookmarks(state)
+        assert "comp-1" not in result["bookmarks"]["companies"]
+        assert "comp-2" in result["bookmarks"]["companies"]
+
+    def test_removes_stream_when_all_companies_bad(self):
+        """If all companies under a stream are {} or null, the stream
+        key itself should be removed."""
+        state = {
+            "bookmarks": {
+                "companies": {
+                    "comp-1": {},
+                    "comp-2": None,
+                }
+            }
+        }
+        result = sanitize_bookmarks(state)
+        assert result == {"bookmarks": {}}
+
+    def test_preserves_valid_state(self):
+        state = {
+            "bookmarks": {
+                "invoices": {
+                    "comp-1": {"field": "modifiedDate", "last_record": "2024-01-01T00:00:00Z"},
+                }
+            }
+        }
+        result = sanitize_bookmarks(state)
+        assert result == state
+
+    def test_handles_empty_bookmarks(self):
+        state = {"bookmarks": {}}
+        result = sanitize_bookmarks(state)
+        assert result == {"bookmarks": {}}
+
+    def test_handles_missing_bookmarks(self):
+        state = {}
+        result = sanitize_bookmarks(state)
+        assert result == {}

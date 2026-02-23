@@ -32,7 +32,14 @@ def incorporate(state, table, company_id, field, value):
     if table not in new_state['bookmarks']:
         new_state['bookmarks'][table] = {}
 
-    current_value = new_state['bookmarks'].get(table, {}).get(company_id, {}).get('last_record')
+    # Sanitize first: remove any pre-existing empty dict or null company
+    _sanitize_stream_bookmark(new_state, table)
+
+    if table not in new_state['bookmarks']:
+        new_state['bookmarks'][table] = {}
+
+    current_value = (new_state['bookmarks'].get(table, {})
+                     .get(company_id) or {}).get('last_record')
     if current_value is None or current_value < parsed:
         new_state['bookmarks'][table][company_id] = {
             'field': field,
@@ -40,6 +47,43 @@ def incorporate(state, table, company_id, field, value):
         }
 
     return new_state
+
+
+def _sanitize_stream_bookmark(state, table):
+    """Remove any empty dict ({}) or null company entries from a specific
+    stream bookmark, and remove the stream key itself if it ends up empty."""
+    bookmarks = state.get('bookmarks')
+    if not isinstance(bookmarks, dict):
+        return
+
+    stream_val = bookmarks.get(table)
+    if not isinstance(stream_val, dict):
+        return
+
+    bad_keys = [cid for cid, cval in stream_val.items()
+                if cval is None or cval == {}]
+    for cid in bad_keys:
+        del stream_val[cid]
+
+    if not stream_val:
+        del bookmarks[table]
+
+
+def sanitize_bookmarks(state):
+    """Sanitize all stream bookmarks by removing any empty dict ({}) or
+    null company entries. Prevents emitting bad state shapes like:
+
+        {"bookmarks": {"companies": {"{ID}": {}}}}   # BAD
+        {"bookmarks": {"companies": {"{ID}": null}}} # BAD
+    """
+    bookmarks = state.get('bookmarks')
+    if not isinstance(bookmarks, dict):
+        return state
+
+    for table in list(bookmarks.keys()):
+        _sanitize_stream_bookmark(state, table)
+
+    return state
 
 
 def save_state(state):
