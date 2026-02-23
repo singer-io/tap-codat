@@ -26,16 +26,15 @@ class capture_state(ContextDecorator):
 
     def __exit__(self, *exc):
         if self.field_name and self.max is not None:
-            company_stream = "{}.{}".format(self.stream_id, self.company_id)
             self.ctx.state = incorporate(self.ctx.state,
-                                         company_stream,
+                                         self.stream_id,
+                                         self.company_id,
                                          self.field_name,
                                          self.max)
             save_state(self.ctx.state)
 
     def get_max(self):
-        company_stream = "{}.{}".format(self.stream_id, self.company_id)
-        state_dt = get_last_record_value_for_table(self.ctx.state, company_stream)
+        state_dt = get_last_record_value_for_table(self.ctx.state, self.stream_id, self.company_id)
         if state_dt:
             return state_dt.strftime('%Y-%m-%dT%H:%M:%S.00Z')
         else:

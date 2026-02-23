@@ -6,9 +6,10 @@ from dateutil.parser import parse
 LOGGER = singer.get_logger()
 
 
-def get_last_record_value_for_table(state, table):
-    last_value = state.get('bookmarks', {}) \
-                      .get(table, {}) \
+def get_last_record_value_for_table(state, table, company_id):
+    last_value = (state.get('bookmarks', {})
+                      .get(table, {})
+                      .get(company_id) or {})\
                       .get('last_record')
 
     if last_value is None:
@@ -17,7 +18,7 @@ def get_last_record_value_for_table(state, table):
     return parse(last_value)
 
 
-def incorporate(state, table, field, value):
+def incorporate(state, table, company_id, field, value):
     if value is None:
         return state
 
@@ -28,9 +29,12 @@ def incorporate(state, table, field, value):
     if 'bookmarks' not in new_state:
         new_state['bookmarks'] = {}
 
-    if(new_state['bookmarks'].get(table, {}).get('last_record') is None or
-       new_state['bookmarks'].get(table, {}).get('last_record') < value):
-        new_state['bookmarks'][table] = {
+    if table not in new_state['bookmarks']:
+        new_state['bookmarks'][table] = {}
+
+    current_value = new_state['bookmarks'].get(table, {}).get(company_id, {}).get('last_record')
+    if current_value is None or current_value < parsed:
+        new_state['bookmarks'][table][company_id] = {
             'field': field,
             'last_record': parsed,
         }
