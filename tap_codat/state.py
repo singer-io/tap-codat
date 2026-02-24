@@ -7,10 +7,13 @@ LOGGER = singer.get_logger()
 
 
 def get_last_record_value_for_table(state, table, company_id):
-    last_value = (state.get('bookmarks', {})
-                      .get(table, {})
-                      .get(company_id, {}))\
-                      .get('last_record')
+    company_bookmark = (state.get('bookmarks', {})
+                             .get(table, {})
+                             .get(company_id))
+    if not isinstance(company_bookmark, dict):
+        return None
+
+    last_value = company_bookmark.get('last_record')
 
     if last_value is None:
         return None
