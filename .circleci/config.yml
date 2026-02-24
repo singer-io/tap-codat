@@ -11,7 +11,7 @@ jobs:
             uv venv --python 3.12 /usr/local/share/virtualenvs/tap-codat
             source /usr/local/share/virtualenvs/tap-codat/bin/activate
             uv pip install -U setuptools
-            uv pip install .[dev]
+            uv pip install .
       - add_ssh_keys
       - run:
           name: 'JSON Validator'
