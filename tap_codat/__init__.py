@@ -77,7 +77,6 @@ def discover(ctx):
 
 
 def sync(ctx):
-    sanitize_bookmarks(ctx.state)
     streams_.companies.fetch_into_cache(ctx)
     currently_syncing = ctx.state.get("currently_syncing")
     start_idx = streams_.all_stream_ids.index(currently_syncing) \
@@ -90,6 +89,7 @@ def sync(ctx):
         load_and_write_schema(ctx, stream)
         stream.sync(ctx)
     ctx.state["currently_syncing"] = None
+    sanitize_bookmarks(ctx.state)
     ctx.write_state()
 
 

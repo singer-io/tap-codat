@@ -43,6 +43,8 @@ def incorporate(state, table, company_id, field, value):
 
     current_value = (new_state['bookmarks'].get(table, {})
                      .get(company_id) or {}).get('last_record')
+    # Lexicographic comparison is safe here: both values are normalised
+    # to the fixed-width ISO 8601 format "%Y-%m-%dT%H:%M:%SZ" (see `parsed` above).
     if current_value is None or current_value < parsed:
         new_state['bookmarks'][table][company_id] = {
             'field': field,
@@ -83,8 +85,8 @@ def sanitize_bookmarks(state):
     if not isinstance(bookmarks, dict):
         return state
 
-    for table in list(bookmarks.keys()):
-        _sanitize_stream_bookmark(state, table)
+    for stream_name in list(bookmarks.keys()):
+        _sanitize_stream_bookmark(state, stream_name)
 
     return state
 
