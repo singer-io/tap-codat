@@ -1,7 +1,7 @@
 # Changelog
 
 ## 1.0.0
-  * State bookmark structure changed from `bookmarks[stream][companyId]` to per-company keying under each stream. Existing state files using the old format will not be recognized, causing a full resync from `start_date`.
+  * State bookmark structure changed from `bookmarks[stream][companyId]` to per-company keying under each stream. Existing state files using the old format will not be recognized, causing a full resync from `start_date` [#29](https://github.com/singer-io/tap-codat/pull/29)
   * Update libraries [#26](https://github.com/singer-io/tap-codat/pull/26)
   * Bug fix: NoneType object has no attribute lower
 
