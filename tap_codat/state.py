@@ -1,3 +1,4 @@
+import copy
 import json
 import singer
 
@@ -25,15 +26,12 @@ def incorporate(state, table, company_id, field, value):
     if value is None:
         return state
 
-    new_state = state.copy()
+    new_state = copy.deepcopy(state)
 
     parsed = parse(value).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     if 'bookmarks' not in new_state:
         new_state['bookmarks'] = {}
-
-    if table not in new_state['bookmarks']:
-        new_state['bookmarks'][table] = {}
 
     # Sanitize first: remove any pre-existing empty dict or null company
     _sanitize_stream_bookmark(new_state, table)
