@@ -38,7 +38,8 @@ class BookmarkIntegrationTest(CodatBaseTest, unittest.TestCase):
         ctx = self._create_context()
         ctx.catalog = self._make_selected_catalog()
         tap_codat.sync(ctx)
-        # ctx.write_state() and save_state both call singer.write_state
+        # Both ctx.write_state() and save_state() call singer.write_state
+        # (same module object), so a single patch captures all calls.
         self.assertTrue(mock_write_state.called)
 
     @patch("tap_codat.streams.singer.write_records")
