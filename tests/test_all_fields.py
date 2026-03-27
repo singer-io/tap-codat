@@ -55,9 +55,9 @@ class AllFieldsIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.ctx.catalog = self._make_selected_catalog()
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_sync_writes_records_for_streams_with_data(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -81,9 +81,9 @@ class AllFieldsIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.assertIn('profit_and_loss', written_streams)
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_company_records_have_id(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -97,9 +97,9 @@ class AllFieldsIntegrationTest(CodatBaseTest, unittest.TestCase):
                     self.assertIn('id', record)
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_account_records_have_required_fields(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -114,9 +114,9 @@ class AllFieldsIntegrationTest(CodatBaseTest, unittest.TestCase):
                     self.assertIn('companyId', record)
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_invoice_records_have_required_fields(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -131,9 +131,9 @@ class AllFieldsIntegrationTest(CodatBaseTest, unittest.TestCase):
                     self.assertIn('companyId', record)
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_company_info_records_have_company_id(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -147,9 +147,9 @@ class AllFieldsIntegrationTest(CodatBaseTest, unittest.TestCase):
                     self.assertIn('companyId', record)
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_connection_records_have_required_fields(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -164,9 +164,9 @@ class AllFieldsIntegrationTest(CodatBaseTest, unittest.TestCase):
                     self.assertIn('companyId', record)
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_events_records_have_required_fields(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -181,9 +181,9 @@ class AllFieldsIntegrationTest(CodatBaseTest, unittest.TestCase):
                     self.assertIn('companyId', record)
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_sync_only_companies(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -206,9 +206,9 @@ class AllFieldsIntegrationTest(CodatBaseTest, unittest.TestCase):
     # ------------------------------------------------------------------
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_all_company_fields_replicated(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -226,9 +226,9 @@ class AllFieldsIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.fail("No companies records written")
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_all_account_fields_replicated(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -246,9 +246,9 @@ class AllFieldsIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.fail("No accounts records written")
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_all_invoice_fields_replicated(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -266,9 +266,9 @@ class AllFieldsIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.fail("No invoices records written")
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_all_company_info_fields_replicated(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -286,9 +286,9 @@ class AllFieldsIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.fail("No company_info records written")
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_all_bill_fields_replicated(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -306,9 +306,9 @@ class AllFieldsIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.fail("No bills records written")
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_all_connection_fields_replicated(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -326,9 +326,9 @@ class AllFieldsIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.fail("No connections records written")
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_all_event_fields_replicated(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,

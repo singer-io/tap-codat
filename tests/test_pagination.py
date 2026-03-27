@@ -18,9 +18,9 @@ class PaginationIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.ctx.catalog = self._make_selected_catalog()
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_all_accounts_returned_in_single_page(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -37,9 +37,9 @@ class PaginationIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.fail("No accounts records written")
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_all_invoices_returned_in_single_page(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -56,9 +56,9 @@ class PaginationIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.fail("No invoices records written")
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_all_bills_returned_in_single_page(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,

@@ -14,9 +14,9 @@ except ImportError:
 class StartDateIntegrationTest(CodatBaseTest, unittest.TestCase):
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_start_date_used_as_initial_bookmark(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -36,9 +36,9 @@ class StartDateIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.assertTrue(mock_write_records.called)
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_full_table_stream_ignores_start_date(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -62,9 +62,9 @@ class StartDateIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.fail("No companies records written")
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_existing_bookmark_used_over_start_date(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -103,9 +103,9 @@ class StartDateIntegrationTest(CodatBaseTest, unittest.TestCase):
     # ------------------------------------------------------------------
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_start_date_included_in_api_query(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -135,9 +135,9 @@ class StartDateIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.assertTrue(mock_write_records.called)
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_different_start_dates_yield_same_full_table_count(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,

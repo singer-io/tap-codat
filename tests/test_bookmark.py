@@ -14,9 +14,9 @@ except ImportError:
 class BookmarkIntegrationTest(CodatBaseTest, unittest.TestCase):
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_currently_syncing_is_cleared(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -28,7 +28,7 @@ class BookmarkIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.assertIsNone(ctx.state.get("currently_syncing"))
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
     def test_state_written_during_sync(
         self, mock_write_schema,
@@ -42,9 +42,9 @@ class BookmarkIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.assertTrue(mock_write_state.called)
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_incremental_stream_updates_bookmark(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -65,7 +65,7 @@ class BookmarkIntegrationTest(CodatBaseTest, unittest.TestCase):
             self.assertIsNotNone(accounts_bookmark.get('last_record'))
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
     def test_full_table_stream_does_not_update_bookmark(
         self, mock_write_schema,
@@ -87,7 +87,7 @@ class BookmarkIntegrationTest(CodatBaseTest, unittest.TestCase):
     # ------------------------------------------------------------------
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
     def test_bookmark_structure_has_field_and_last_record(
         self, mock_write_schema,
@@ -109,7 +109,7 @@ class BookmarkIntegrationTest(CodatBaseTest, unittest.TestCase):
             self.assertIn('2024', accounts_bm['last_record'])
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
     def test_bookmark_uses_max_modified_date(
         self, mock_write_schema,
@@ -128,7 +128,7 @@ class BookmarkIntegrationTest(CodatBaseTest, unittest.TestCase):
             self.assertIn('2024-03-20', accounts_bm['last_record'])
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
     def test_multiple_incremental_streams_each_get_bookmarks(
         self, mock_write_schema,

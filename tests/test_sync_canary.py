@@ -18,9 +18,9 @@ class SyncCanaryIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.ctx.catalog = self._make_selected_catalog()
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_full_pipeline_emits_records(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -37,9 +37,9 @@ class SyncCanaryIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.assertIn('companies', written_streams)
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_schemas_emitted_for_synced_streams(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,

@@ -46,9 +46,9 @@ class DoSyncIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.assertIn('accounts', record_streams)
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_correct_record_counts_for_accounts(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -64,9 +64,9 @@ class DoSyncIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.fail("No accounts records written")
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_correct_record_counts_for_companies(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -86,9 +86,9 @@ class DoSyncIntegrationTest(CodatBaseTest, unittest.TestCase):
     # ------------------------------------------------------------------
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_schema_emitted_before_records(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -117,9 +117,9 @@ class DoSyncIntegrationTest(CodatBaseTest, unittest.TestCase):
                 )
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_schema_includes_key_properties(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -144,9 +144,9 @@ class DoSyncIntegrationTest(CodatBaseTest, unittest.TestCase):
     # ------------------------------------------------------------------
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_only_selected_streams_are_synced(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -162,9 +162,9 @@ class DoSyncIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.assertNotIn('invoices', record_streams)
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_only_accounts_selected(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -183,9 +183,9 @@ class DoSyncIntegrationTest(CodatBaseTest, unittest.TestCase):
     # ------------------------------------------------------------------
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_currently_syncing_cleared_after_sync(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
@@ -199,7 +199,7 @@ class DoSyncIntegrationTest(CodatBaseTest, unittest.TestCase):
     # ------------------------------------------------------------------
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
     def test_no_streams_selected_writes_nothing(
         self, mock_write_schema,
@@ -218,7 +218,7 @@ class DoSyncIntegrationTest(CodatBaseTest, unittest.TestCase):
     # ------------------------------------------------------------------
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
     def test_empty_api_responses_no_crash(
         self, mock_write_schema,
@@ -249,7 +249,7 @@ class DoSyncIntegrationTest(CodatBaseTest, unittest.TestCase):
     # ------------------------------------------------------------------
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
     def test_state_emitted_with_bookmark_for_incremental_stream(
         self, mock_write_schema,
@@ -273,7 +273,7 @@ class DoSyncIntegrationTest(CodatBaseTest, unittest.TestCase):
     # ------------------------------------------------------------------
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
     def test_company_records_have_correct_types(
         self, mock_write_schema,
@@ -294,7 +294,7 @@ class DoSyncIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.fail("No companies records written")
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
     def test_account_records_have_correct_types(
         self, mock_write_schema,
@@ -316,7 +316,7 @@ class DoSyncIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.fail("No accounts records written")
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
     def test_invoice_records_have_correct_types(
         self, mock_write_schema,
@@ -386,7 +386,7 @@ class MainImplIntegrationTest(CodatBaseTest, unittest.TestCase):
     # ------------------------------------------------------------------
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
     @patch("tap_codat.http.Client.GET")
     def test_main_impl_sync_with_all_args(
@@ -405,7 +405,7 @@ class MainImplIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.assertIn('companies', record_streams)
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
     @patch("tap_codat.http.Client.GET")
     def test_main_impl_sync_without_state_arg(
@@ -423,7 +423,7 @@ class MainImplIntegrationTest(CodatBaseTest, unittest.TestCase):
         self.assertIn('companies', record_streams)
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
     @patch("tap_codat.http.Client.GET")
     def test_main_impl_sync_with_short_args(
@@ -455,7 +455,7 @@ class MainImplIntegrationTest(CodatBaseTest, unittest.TestCase):
         mock_get.assert_called()
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
     @patch("tap_codat.http.Client.GET")
     def test_main_calls_sync(
@@ -478,7 +478,7 @@ class MainImplIntegrationTest(CodatBaseTest, unittest.TestCase):
     # ------------------------------------------------------------------
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
     @patch("tap_codat.http.Client.GET")
     def test_main_impl_no_catalog_auto_discovers(
