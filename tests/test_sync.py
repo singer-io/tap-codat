@@ -26,9 +26,9 @@ class DoSyncIntegrationTest(CodatBaseTest, unittest.TestCase):
     # ------------------------------------------------------------------
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_full_pipeline_emits_schemas_and_records(
         self, mock_ctx_write_state, mock_write_schema,
         mock_stream_write_state, mock_write_records,
