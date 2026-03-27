@@ -70,25 +70,25 @@ class TestGetLastRecordValueForTable(unittest.TestCase):
 
     def test_returns_none_when_no_bookmarks(self):
         state = {}
-        result = get_last_record_value_for_table(state, 'companies')
+        result = get_last_record_value_for_table(state, 'companies', 'comp-001')
         self.assertIsNone(result)
 
     def test_returns_none_when_table_not_in_bookmarks(self):
         state = {'bookmarks': {}}
-        result = get_last_record_value_for_table(state, 'accounts')
+        result = get_last_record_value_for_table(state, 'accounts', 'comp-001')
         self.assertIsNone(result)
 
     def test_returns_none_when_last_record_is_none(self):
-        state = {'bookmarks': {'accounts.comp-001': {'last_record': None}}}
-        result = get_last_record_value_for_table(state, 'accounts.comp-001')
+        state = {'bookmarks': {'accounts': {'comp-001': {'last_record': None}}}}
+        result = get_last_record_value_for_table(state, 'accounts', 'comp-001')
         self.assertIsNone(result)
 
     def test_returns_datetime_when_bookmark_exists(self):
-        state = {'bookmarks': {'accounts.comp-001': {
+        state = {'bookmarks': {'accounts': {'comp-001': {
             'field': 'modifiedDate',
             'last_record': '2024-06-15T10:00:00Z',
-        }}}
-        result = get_last_record_value_for_table(state, 'accounts.comp-001')
+        }}}}
+        result = get_last_record_value_for_table(state, 'accounts', 'comp-001')
         self.assertIsNotNone(result)
         self.assertEqual(result.year, 2024)
         self.assertEqual(result.month, 6)
@@ -103,43 +103,44 @@ class TestIncorporate(unittest.TestCase):
 
     def test_returns_state_unchanged_when_value_is_none(self):
         state = {}
-        result = incorporate(state, 'accounts.comp-001', 'modifiedDate', None)
+        result = incorporate(state, 'accounts', 'comp-001', 'modifiedDate', None)
         self.assertEqual(result, {})
 
     def test_adds_bookmark_when_no_existing_bookmark(self):
         state = {}
-        result = incorporate(state, 'accounts.comp-001', 'modifiedDate',
+        result = incorporate(state, 'accounts', 'comp-001', 'modifiedDate',
                              '2024-03-15T10:00:00Z')
         self.assertIn('bookmarks', result)
-        self.assertIn('accounts.comp-001', result['bookmarks'])
-        self.assertEqual(result['bookmarks']['accounts.comp-001']['field'],
+        self.assertIn('accounts', result['bookmarks'])
+        self.assertIn('comp-001', result['bookmarks']['accounts'])
+        self.assertEqual(result['bookmarks']['accounts']['comp-001']['field'],
                          'modifiedDate')
-        self.assertEqual(result['bookmarks']['accounts.comp-001']['last_record'],
+        self.assertEqual(result['bookmarks']['accounts']['comp-001']['last_record'],
                          '2024-03-15T10:00:00Z')
 
     def test_updates_bookmark_when_value_is_newer(self):
-        state = {'bookmarks': {'accounts.comp-001': {
+        state = {'bookmarks': {'accounts': {'comp-001': {
             'field': 'modifiedDate',
             'last_record': '2024-01-01T00:00:00Z',
-        }}}
-        result = incorporate(state, 'accounts.comp-001', 'modifiedDate',
+        }}}}
+        result = incorporate(state, 'accounts', 'comp-001', 'modifiedDate',
                              '2024-06-15T10:00:00Z')
-        self.assertEqual(result['bookmarks']['accounts.comp-001']['last_record'],
+        self.assertEqual(result['bookmarks']['accounts']['comp-001']['last_record'],
                          '2024-06-15T10:00:00Z')
 
     def test_does_not_update_bookmark_when_value_is_older(self):
-        state = {'bookmarks': {'accounts.comp-001': {
+        state = {'bookmarks': {'accounts': {'comp-001': {
             'field': 'modifiedDate',
             'last_record': '2024-06-15T10:00:00Z',
-        }}}
-        result = incorporate(state, 'accounts.comp-001', 'modifiedDate',
+        }}}}
+        result = incorporate(state, 'accounts', 'comp-001', 'modifiedDate',
                              '2024-01-01T00:00:00Z')
-        self.assertEqual(result['bookmarks']['accounts.comp-001']['last_record'],
+        self.assertEqual(result['bookmarks']['accounts']['comp-001']['last_record'],
                          '2024-06-15T10:00:00Z')
 
     def test_does_not_mutate_original_state(self):
         state = {}
-        result = incorporate(state, 'table', 'field', '2024-01-01T00:00:00Z')
+        result = incorporate(state, 'table', 'comp-001', 'field', '2024-01-01T00:00:00Z')
         self.assertNotIn('bookmarks', state)
         self.assertIn('bookmarks', result)
 
@@ -316,12 +317,12 @@ class TestClientRequestHandling(unittest.TestCase):
         self.assertEqual(result, {"results": []})
 
     @patch.object(Client, 'prepare_and_send')
-    def test_returns_none_on_404(self, mock_send):
+    def test_returns_empty_results_on_404(self, mock_send):
         client = self._make_client()
         mock_send.return_value = self._make_mock_response(404)
         request = MagicMock()
         result = client.request_with_handling(request, "companies")
-        self.assertIsNone(result)
+        self.assertEqual(result, {"results": []})
         self.assertEqual(len(client.logs), 1)
 
     @patch.object(Client, 'prepare_and_send')

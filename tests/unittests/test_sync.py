@@ -154,7 +154,7 @@ class TestCaptureState(CodatBaseTest, unittest.TestCase):
 
     def test_get_max_returns_bookmark_when_state_exists(self):
         ctx = self._create_context(state={"bookmarks": {
-            "accounts.comp-001": {"field": "modifiedDate", "last_record": "2024-06-01T00:00:00Z"}
+            "accounts": {"comp-001": {"field": "modifiedDate", "last_record": "2024-06-01T00:00:00Z"}}
         }})
         with capture_state(ctx, "accounts", "modifiedDate", "comp-001") as sync:
             result = sync.get_max()

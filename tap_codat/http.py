@@ -22,7 +22,7 @@ class Client(object):
         self.user_agent = config.get("user_agent")
         self.session = requests.Session()
         self.b64key = b64encode(config["api_key"].encode()).decode("utf-8")
-        self.base_url = UAT_URL if config.get("uat_urls").lower() == "true" else BASE_URL
+        self.base_url = UAT_URL if config.get("uat_urls", "").lower() == "true" else BASE_URL
         self.logs = []
 
     def prepare_and_send(self, request):
@@ -65,7 +65,7 @@ class Client(object):
             log_msg = f"failed to fetch due to {response.status_code} status code"
             LOGGER.warning(log_msg)
             self.logs.append(log)
-            return None
+            return {"results": []}
         response.raise_for_status()
         return response.json()
 

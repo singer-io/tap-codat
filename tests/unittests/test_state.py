@@ -20,53 +20,53 @@ from tap_codat.state import (
 class TestGetLastRecordValueForTable(unittest.TestCase):
 
     def test_no_bookmarks_returns_none(self):
-        self.assertIsNone(get_last_record_value_for_table({}, "accounts.comp-001"))
+        self.assertIsNone(get_last_record_value_for_table({}, "accounts", "comp-001"))
 
     def test_empty_state_returns_none(self):
-        self.assertIsNone(get_last_record_value_for_table({}, "companies"))
+        self.assertIsNone(get_last_record_value_for_table({}, "companies", "comp-001"))
 
     def test_table_not_in_bookmarks_returns_none(self):
         state = {"bookmarks": {}}
-        self.assertIsNone(get_last_record_value_for_table(state, "accounts.comp-001"))
+        self.assertIsNone(get_last_record_value_for_table(state, "accounts", "comp-001"))
 
     def test_last_record_is_none_returns_none(self):
-        state = {"bookmarks": {"accounts.comp-001": {"last_record": None}}}
-        self.assertIsNone(get_last_record_value_for_table(state, "accounts.comp-001"))
+        state = {"bookmarks": {"accounts": {"comp-001": {"last_record": None}}}}
+        self.assertIsNone(get_last_record_value_for_table(state, "accounts", "comp-001"))
 
     def test_returns_datetime_when_present(self):
-        state = {"bookmarks": {"accounts.comp-001": {
+        state = {"bookmarks": {"accounts": {"comp-001": {
             "field": "modifiedDate",
             "last_record": "2024-06-15T10:00:00Z",
-        }}}
-        result = get_last_record_value_for_table(state, "accounts.comp-001")
+        }}}}
+        result = get_last_record_value_for_table(state, "accounts", "comp-001")
         self.assertIsNotNone(result)
         self.assertEqual(result.year, 2024)
         self.assertEqual(result.month, 6)
         self.assertEqual(result.day, 15)
 
     def test_returns_correct_time(self):
-        state = {"bookmarks": {"invoices.c1": {
+        state = {"bookmarks": {"invoices": {"c1": {
             "last_record": "2024-03-15T14:30:45Z",
-        }}}
-        result = get_last_record_value_for_table(state, "invoices.c1")
+        }}}}
+        result = get_last_record_value_for_table(state, "invoices", "c1")
         self.assertEqual(result.hour, 14)
         self.assertEqual(result.minute, 30)
 
     def test_different_tables_return_different_values(self):
         state = {"bookmarks": {
-            "accounts.c1": {"last_record": "2024-01-01T00:00:00Z"},
-            "invoices.c1": {"last_record": "2024-06-01T00:00:00Z"},
+            "accounts": {"c1": {"last_record": "2024-01-01T00:00:00Z"}},
+            "invoices": {"c1": {"last_record": "2024-06-01T00:00:00Z"}},
         }}
-        acct = get_last_record_value_for_table(state, "accounts.c1")
-        inv = get_last_record_value_for_table(state, "invoices.c1")
+        acct = get_last_record_value_for_table(state, "accounts", "c1")
+        inv = get_last_record_value_for_table(state, "invoices", "c1")
         self.assertNotEqual(acct, inv)
         self.assertEqual(acct.month, 1)
         self.assertEqual(inv.month, 6)
 
     def test_does_not_mutate_state(self):
-        state = {"bookmarks": {"t1": {"last_record": "2024-01-01T00:00:00Z"}}}
+        state = {"bookmarks": {"t1": {"c1": {"last_record": "2024-01-01T00:00:00Z"}}}}
         original = json.dumps(state)
-        get_last_record_value_for_table(state, "t1")
+        get_last_record_value_for_table(state, "t1", "c1")
         self.assertEqual(json.dumps(state), original)
 
 
@@ -78,83 +78,84 @@ class TestIncorporate(unittest.TestCase):
 
     def test_value_none_returns_state_unchanged(self):
         state = {}
-        result = incorporate(state, "accounts.c1", "modifiedDate", None)
+        result = incorporate(state, "accounts", "c1", "modifiedDate", None)
         self.assertEqual(result, {})
 
     def test_creates_bookmark_when_none_exists(self):
-        result = incorporate({}, "accounts.c1", "modifiedDate", "2024-03-15T10:00:00Z")
+        result = incorporate({}, "accounts", "c1", "modifiedDate", "2024-03-15T10:00:00Z")
         self.assertIn("bookmarks", result)
-        self.assertIn("accounts.c1", result["bookmarks"])
-        self.assertEqual(result["bookmarks"]["accounts.c1"]["field"], "modifiedDate")
-        self.assertEqual(result["bookmarks"]["accounts.c1"]["last_record"],
+        self.assertIn("accounts", result["bookmarks"])
+        self.assertIn("c1", result["bookmarks"]["accounts"])
+        self.assertEqual(result["bookmarks"]["accounts"]["c1"]["field"], "modifiedDate")
+        self.assertEqual(result["bookmarks"]["accounts"]["c1"]["last_record"],
                          "2024-03-15T10:00:00Z")
 
     def test_updates_when_newer(self):
-        state = {"bookmarks": {"t1": {"field": "f", "last_record": "2024-01-01T00:00:00Z"}}}
-        result = incorporate(state, "t1", "f", "2024-06-15T10:00:00Z")
-        self.assertEqual(result["bookmarks"]["t1"]["last_record"], "2024-06-15T10:00:00Z")
+        state = {"bookmarks": {"t1": {"c1": {"field": "f", "last_record": "2024-01-01T00:00:00Z"}}}}
+        result = incorporate(state, "t1", "c1", "f", "2024-06-15T10:00:00Z")
+        self.assertEqual(result["bookmarks"]["t1"]["c1"]["last_record"], "2024-06-15T10:00:00Z")
 
     def test_does_not_update_when_older(self):
-        state = {"bookmarks": {"t1": {"field": "f", "last_record": "2024-06-15T10:00:00Z"}}}
-        result = incorporate(state, "t1", "f", "2024-01-01T00:00:00Z")
-        self.assertEqual(result["bookmarks"]["t1"]["last_record"], "2024-06-15T10:00:00Z")
+        state = {"bookmarks": {"t1": {"c1": {"field": "f", "last_record": "2024-06-15T10:00:00Z"}}}}
+        result = incorporate(state, "t1", "c1", "f", "2024-01-01T00:00:00Z")
+        self.assertEqual(result["bookmarks"]["t1"]["c1"]["last_record"], "2024-06-15T10:00:00Z")
 
     def test_does_not_mutate_original(self):
         state = {}
-        result = incorporate(state, "t1", "f", "2024-01-01T00:00:00Z")
+        result = incorporate(state, "t1", "c1", "f", "2024-01-01T00:00:00Z")
         self.assertNotIn("bookmarks", state)
         self.assertIn("bookmarks", result)
 
     def test_preserves_other_bookmarks(self):
-        state = {"bookmarks": {"t1": {"field": "f", "last_record": "2024-01-01T00:00:00Z"}}}
-        result = incorporate(state, "t2", "g", "2024-06-15T10:00:00Z")
+        state = {"bookmarks": {"t1": {"c1": {"field": "f", "last_record": "2024-01-01T00:00:00Z"}}}}
+        result = incorporate(state, "t2", "c1", "g", "2024-06-15T10:00:00Z")
         self.assertIn("t1", result["bookmarks"])
         self.assertIn("t2", result["bookmarks"])
 
     def test_sequential_incorporates(self):
         state = {}
-        state = incorporate(state, "t1", "f", "2024-01-01T00:00:00Z")
-        state = incorporate(state, "t1", "f", "2024-03-01T00:00:00Z")
-        state = incorporate(state, "t1", "f", "2024-06-01T00:00:00Z")
-        self.assertEqual(state["bookmarks"]["t1"]["last_record"], "2024-06-01T00:00:00Z")
+        state = incorporate(state, "t1", "c1", "f", "2024-01-01T00:00:00Z")
+        state = incorporate(state, "t1", "c1", "f", "2024-03-01T00:00:00Z")
+        state = incorporate(state, "t1", "c1", "f", "2024-06-01T00:00:00Z")
+        self.assertEqual(state["bookmarks"]["t1"]["c1"]["last_record"], "2024-06-01T00:00:00Z")
 
     def test_incorporate_with_existing_bookmarks_on_new_table(self):
-        state = {"bookmarks": {"t1": {"field": "f", "last_record": "2024-01-01T00:00:00Z"}}}
-        result = incorporate(state, "t2", "g", "2024-05-01T00:00:00Z")
-        self.assertEqual(result["bookmarks"]["t1"]["last_record"], "2024-01-01T00:00:00Z")
-        self.assertEqual(result["bookmarks"]["t2"]["last_record"], "2024-05-01T00:00:00Z")
+        state = {"bookmarks": {"t1": {"c1": {"field": "f", "last_record": "2024-01-01T00:00:00Z"}}}}
+        result = incorporate(state, "t2", "c1", "g", "2024-05-01T00:00:00Z")
+        self.assertEqual(result["bookmarks"]["t1"]["c1"]["last_record"], "2024-01-01T00:00:00Z")
+        self.assertEqual(result["bookmarks"]["t2"]["c1"]["last_record"], "2024-05-01T00:00:00Z")
 
 
 class TestIncorporateRoundTrip(unittest.TestCase):
     """Verify incorporate and get_last_record_value_for_table work together."""
 
     def test_write_then_read(self):
-        state = incorporate({}, "accounts.c1", "modifiedDate", "2024-10-15T00:00:00Z")
-        result = get_last_record_value_for_table(state, "accounts.c1")
+        state = incorporate({}, "accounts", "c1", "modifiedDate", "2024-10-15T00:00:00Z")
+        result = get_last_record_value_for_table(state, "accounts", "c1")
         self.assertIsNotNone(result)
         self.assertEqual(result.year, 2024)
         self.assertEqual(result.month, 10)
 
     def test_write_multiple_then_read_each(self):
         state = {}
-        state = incorporate(state, "accounts.c1", "modifiedDate", "2024-01-01T00:00:00Z")
-        state = incorporate(state, "invoices.c1", "modifiedDate", "2024-06-01T00:00:00Z")
-        acct = get_last_record_value_for_table(state, "accounts.c1")
-        inv = get_last_record_value_for_table(state, "invoices.c1")
+        state = incorporate(state, "accounts", "c1", "modifiedDate", "2024-01-01T00:00:00Z")
+        state = incorporate(state, "invoices", "c1", "modifiedDate", "2024-06-01T00:00:00Z")
+        acct = get_last_record_value_for_table(state, "accounts", "c1")
+        inv = get_last_record_value_for_table(state, "invoices", "c1")
         self.assertEqual(acct.month, 1)
         self.assertEqual(inv.month, 6)
 
     def test_overwrite_advances_bookmark(self):
-        state = incorporate({}, "t1", "f", "2024-01-01T00:00:00Z")
-        r1 = get_last_record_value_for_table(state, "t1")
+        state = incorporate({}, "t1", "c1", "f", "2024-01-01T00:00:00Z")
+        r1 = get_last_record_value_for_table(state, "t1", "c1")
         self.assertEqual(r1.month, 1)
-        state = incorporate(state, "t1", "f", "2024-12-01T00:00:00Z")
-        r2 = get_last_record_value_for_table(state, "t1")
+        state = incorporate(state, "t1", "c1", "f", "2024-12-01T00:00:00Z")
+        r2 = get_last_record_value_for_table(state, "t1", "c1")
         self.assertEqual(r2.month, 12)
 
     def test_unwritten_table_returns_none(self):
-        state = incorporate({}, "t1", "f", "2024-01-01T00:00:00Z")
-        result = get_last_record_value_for_table(state, "t2")
+        state = incorporate({}, "t1", "c1", "f", "2024-01-01T00:00:00Z")
+        result = get_last_record_value_for_table(state, "t2", "c1")
         self.assertIsNone(result)
 
 

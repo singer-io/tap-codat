@@ -59,7 +59,7 @@ class BookmarkIntegrationTest(CodatBaseTest, unittest.TestCase):
         # After syncing accounts, the state should contain bookmarks
         # for accounts.comp-001 with the max modifiedDate
         bookmarks = ctx.state.get('bookmarks', {})
-        accounts_bookmark = bookmarks.get('accounts.comp-001', {})
+        accounts_bookmark = bookmarks.get('accounts', {}).get('comp-001', {})
         if accounts_bookmark:
             self.assertEqual(accounts_bookmark.get('field'), 'modifiedDate')
             self.assertIsNotNone(accounts_bookmark.get('last_record'))
@@ -79,8 +79,7 @@ class BookmarkIntegrationTest(CodatBaseTest, unittest.TestCase):
 
         bookmarks = ctx.state.get('bookmarks', {})
         # Companies is full table, no company-scoped bookmark expected
-        company_bookmarks = {k: v for k, v in bookmarks.items()
-                             if k.startswith('companies.')}
+        company_bookmarks = bookmarks.get('companies', {})
         self.assertEqual(len(company_bookmarks), 0)
 
     # ------------------------------------------------------------------
@@ -100,7 +99,7 @@ class BookmarkIntegrationTest(CodatBaseTest, unittest.TestCase):
         tap_codat.sync(ctx)
 
         bookmarks = ctx.state.get('bookmarks', {})
-        accounts_bm = bookmarks.get('accounts.comp-001', {})
+        accounts_bm = bookmarks.get('accounts', {}).get('comp-001', {})
         if accounts_bm:
             self.assertIn('field', accounts_bm)
             self.assertIn('last_record', accounts_bm)
@@ -122,7 +121,7 @@ class BookmarkIntegrationTest(CodatBaseTest, unittest.TestCase):
         tap_codat.sync(ctx)
 
         bookmarks = ctx.state.get('bookmarks', {})
-        accounts_bm = bookmarks.get('accounts.comp-001', {})
+        accounts_bm = bookmarks.get('accounts', {}).get('comp-001', {})
         if accounts_bm:
             # From mock data: acct-001 has 2024-01-15, acct-002 has 2024-03-20
             # Max should be 2024-03-20
@@ -143,7 +142,10 @@ class BookmarkIntegrationTest(CodatBaseTest, unittest.TestCase):
 
         bookmarks = ctx.state.get('bookmarks', {})
         # Check that at least accounts has a bookmark
-        self.assertIn('accounts.comp-001', bookmarks)
+        self.assertIn('accounts', bookmarks)
+        self.assertIn('comp-001', bookmarks.get('accounts', {}))
         # Invoices and bills should also have bookmarks
-        self.assertIn('invoices.comp-001', bookmarks)
-        self.assertIn('bills.comp-001', bookmarks)
+        self.assertIn('invoices', bookmarks)
+        self.assertIn('comp-001', bookmarks.get('invoices', {}))
+        self.assertIn('bills', bookmarks)
+        self.assertIn('comp-001', bookmarks.get('bills', {}))

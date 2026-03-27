@@ -164,11 +164,11 @@ class TestClientRequestWithHandling(unittest.TestCase):
         self.assertEqual(result, {"results": [1, 2]})
 
     @patch.object(Client, "prepare_and_send")
-    def test_returns_none_on_404(self, mock_send):
+    def test_returns_empty_results_on_404(self, mock_send):
         client = self._make_client()
         mock_send.return_value = self._make_response(404)
         result = client.request_with_handling(MagicMock(), "companies")
-        self.assertIsNone(result)
+        self.assertEqual(result, {"results": []})
 
     @patch.object(Client, "prepare_and_send")
     def test_404_appends_to_logs(self, mock_send):

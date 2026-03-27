@@ -1,7 +1,9 @@
 # Changelog
 
-## 0.5.4
-  * Bump dependencies [#28](https://github.com/singer-io/tap-codat/pull/28)
+## 1.0.0
+  * State bookmark structure changed from `bookmarks[stream][companyId]` to per-company keying under each stream. [#29](https://github.com/singer-io/tap-codat/pull/29)
+  * Update libraries [#26](https://github.com/singer-io/tap-codat/pull/26)
+  * Bug fix: NoneType object has no attribute lower
 
 ## 0.5.3
   * Dependabot update [#22](https://github.com/singer-io/tap-codat/pull/22)

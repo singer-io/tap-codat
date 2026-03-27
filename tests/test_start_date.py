@@ -73,10 +73,10 @@ class StartDateIntegrationTest(CodatBaseTest, unittest.TestCase):
         instead of start_date."""
         state = {
             'bookmarks': {
-                'accounts.comp-001': {
+                'accounts': {'comp-001': {
                     'field': 'modifiedDate',
                     'last_record': '2024-02-01T00:00:00Z',
-                }
+                }}
             }
         }
         ctx = self._create_context(state=state)

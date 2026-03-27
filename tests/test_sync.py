@@ -262,7 +262,7 @@ class DoSyncIntegrationTest(CodatBaseTest, unittest.TestCase):
         tap_codat.sync(ctx)
 
         bookmarks = ctx.state.get('bookmarks', {})
-        accounts_bm = bookmarks.get('accounts.comp-001', {})
+        accounts_bm = bookmarks.get('accounts', {}).get('comp-001', {})
         if accounts_bm:
             self.assertEqual(accounts_bm.get('field'), 'modifiedDate')
             # Max from mock data: acct-002 has 2024-03-20T14:30:00.00Z
