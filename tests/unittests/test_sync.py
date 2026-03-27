@@ -673,9 +673,9 @@ class TestGetIncrementalFilter(unittest.TestCase):
 class TestMainSync(CodatBaseTest, unittest.TestCase):
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_sync_clears_currently_syncing(
         self, mock_ctx_ws, mock_ws, mock_stream_ws, mock_wr,
     ):
@@ -690,9 +690,9 @@ class TestMainSync(CodatBaseTest, unittest.TestCase):
         self.assertIsNone(ctx.state.get("currently_syncing"))
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_sync_writes_records_for_selected_streams(
         self, mock_ctx_ws, mock_ws, mock_stream_ws, mock_wr,
     ):
@@ -704,9 +704,9 @@ class TestMainSync(CodatBaseTest, unittest.TestCase):
         self.assertNotIn("accounts", written_streams)
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_sync_writes_schemas_before_records(
         self, mock_ctx_ws, mock_ws, mock_stream_ws, mock_wr,
     ):
@@ -725,9 +725,9 @@ class TestMainSync(CodatBaseTest, unittest.TestCase):
         self.assertLess(schema_idx, record_idx)
 
     @patch("tap_codat.streams.singer.write_records")
-    @patch("tap_codat.streams.singer.write_state")
+    @patch("tap_codat.state.singer.write_state")
     @patch("tap_codat.singer.write_schema")
-    @patch("tap_codat.singer.write_state")
+    @patch("tap_codat.context.singer.write_state")
     def test_sync_resumes_from_currently_syncing(
         self, mock_ctx_ws, mock_ws, mock_stream_ws, mock_wr,
     ):
