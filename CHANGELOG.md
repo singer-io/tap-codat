@@ -1,7 +1,7 @@
 # Changelog
 
 ## 1.1.0
-  * Updated python version. [#30](https://github.com/singer-io/tap-codat/pull/30)
+  * Updated python version 3.12 [#30](https://github.com/singer-io/tap-codat/pull/30)
   * Added integration tests.
 
 ## 1.0.0
