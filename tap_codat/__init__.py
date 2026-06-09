@@ -6,6 +6,7 @@ from singer import utils, metadata
 from singer.catalog import Catalog, CatalogEntry, Schema
 from . import streams as streams_
 from .context import Context
+from .state import sanitize_bookmarks
 
 REQUIRED_CONFIG_KEYS = ["start_date", "api_key"]
 LOGGER = singer.get_logger()
@@ -88,6 +89,7 @@ def sync(ctx):
         load_and_write_schema(ctx, stream)
         stream.sync(ctx)
     ctx.state["currently_syncing"] = None
+    sanitize_bookmarks(ctx.state)
     ctx.write_state()
 
 
