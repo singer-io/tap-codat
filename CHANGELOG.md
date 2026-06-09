@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0
+  * Updated python version 3.12 [#30](https://github.com/singer-io/tap-codat/pull/30)
+  * Added integration tests.
+
 ## 1.0.0
   * State bookmark structure changed from `bookmarks[stream][companyId]` to per-company keying under each stream. [#29](https://github.com/singer-io/tap-codat/pull/29)
   * Update libraries [#26](https://github.com/singer-io/tap-codat/pull/26)
