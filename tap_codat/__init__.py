@@ -64,6 +64,10 @@ def _apply_access_checks(ctx, accessible_streams):
     result_streams = []
 
     for stream in accessible_streams:
+        if stream.tap_stream_id == "companies":
+            # Access was already verified by _get_first_company_id().
+            result_streams.append(stream)
+            continue
         if stream.check_access(ctx, company_id):
             result_streams.append(stream)
         else:
