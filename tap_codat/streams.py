@@ -92,8 +92,17 @@ class Stream(object):
         else:
             if "{connectionId}" in self.path:
                 # Bank accounts are connection-scoped; use the first available connectionId.
-                conns = ctx.client.GET({"path": f"/companies/{company_id}/connections"}, self.tap_stream_id)
-                conn_id = ((conns or {}).get("results") or [{}])[0].get("id")
+                try:
+                    conns = ctx.client.GET({"path": f"/companies/{company_id}/connections"}, "connections")
+                except CodatForbiddenError:
+                    LOGGER.warning(
+                        "Stream '%s' does not have read permission, excluding from catalog.",
+                        self.tap_stream_id,
+                    )
+                    return False
+                # The connections endpoint returns a plain list, not a dict.
+                conn_list = conns if isinstance(conns, list) else (conns or {}).get("results") or []
+                conn_id = conn_list[0].get("id") if conn_list else None
                 if not conn_id:
                     # Nothing to probe (no connections) — keep the stream in the catalog.
                     return True
