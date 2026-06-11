@@ -83,16 +83,23 @@ class Stream(object):
         self.state_filter = state_filter
 
     def check_access(self, ctx, company_id=None):
-        """
-        Verify that the API credentials have read access to this stream.
-        Returns True if accessible, False if a 403 Forbidden error is raised.
-        """
+        """Verify that the API credentials have read access to this stream."""
         if self.tap_stream_id == "companies":
             path = self.path
-        elif company_id:
-            path = self.path.format(companyId=company_id, connectionId="")
-        else:
+        elif not company_id:
+            # No company context available to probe company-scoped streams.
             return True
+        else:
+            if "{connectionId}" in self.path:
+                # Bank accounts are connection-scoped; use the first available connectionId.
+                conns = ctx.client.GET({"path": f"/companies/{company_id}/connections"}, self.tap_stream_id)
+                conn_id = ((conns or {}).get("results") or [{}])[0].get("id")
+                if not conn_id:
+                    # Nothing to probe (no connections) — keep the stream in the catalog.
+                    return True
+                path = self.path.format(companyId=company_id, connectionId=conn_id)
+            else:
+                path = self.path.format(companyId=company_id)
 
         try:
             ctx.client.GET({"path": path}, self.tap_stream_id)
