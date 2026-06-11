@@ -291,5 +291,72 @@ class TestAllStreamsConfig(unittest.TestCase):
         self.assertEqual(streams_with_subs, {"bank_accounts", "bank_statements"})
 
 
-if __name__ == "__main__":
-    unittest.main()
+# ---------------------------------------------------------------------------
+# Access check — stream exclusion during discovery
+# ---------------------------------------------------------------------------
+
+class TestAccessChecks(unittest.TestCase):
+
+    def test_all_streams_accessible(self):
+        """When no 403 is raised, all streams remain in the catalog."""
+        ctx = _create_mock_context()
+        catalog = tap_codat.discover(ctx)
+        stream_ids = {e.tap_stream_id for e in catalog.streams}
+        self.assertIn("companies", stream_ids)
+        self.assertIn("invoices", stream_ids)
+
+    def test_partial_access_excludes_forbidden_stream(self):
+        """A stream returning 403 is excluded from the catalog."""
+        from tap_codat.http import CodatForbiddenError
+
+        ctx = _create_mock_context()
+        forbidden_stream = "invoices"
+
+        original_get = ctx.client.GET
+
+        def side_effect(request_kwargs, tap_stream_id):
+            if tap_stream_id == forbidden_stream:
+                raise CodatForbiddenError("403 Forbidden")
+            return original_get(request_kwargs, tap_stream_id)
+
+        ctx.client.GET = MagicMock(side_effect=side_effect)
+
+        catalog = tap_codat.discover(ctx)
+        stream_ids = {e.tap_stream_id for e in catalog.streams}
+        self.assertNotIn(forbidden_stream, stream_ids)
+        self.assertIn("companies", stream_ids)
+
+    def test_all_streams_forbidden_raises_error(self):
+        """When all streams are forbidden, CodatForbiddenError is raised."""
+        from tap_codat.http import CodatForbiddenError
+
+        ctx = _create_mock_context()
+
+        def always_forbidden(request_kwargs, tap_stream_id):
+            raise CodatForbiddenError("403 Forbidden")
+
+        ctx.client.GET = MagicMock(side_effect=always_forbidden)
+
+        with self.assertRaises(CodatForbiddenError):
+            tap_codat.discover(ctx)
+
+    def test_substreams_excluded_when_parent_forbidden(self):
+        """Substreams are excluded when their parent stream is forbidden."""
+        from tap_codat.http import CodatForbiddenError
+
+        ctx = _create_mock_context()
+        forbidden_stream = "bank_accounts"
+
+        original_get = ctx.client.GET
+
+        def side_effect(request_kwargs, tap_stream_id):
+            if tap_stream_id == forbidden_stream:
+                raise CodatForbiddenError("403 Forbidden")
+            return original_get(request_kwargs, tap_stream_id)
+
+        ctx.client.GET = MagicMock(side_effect=side_effect)
+
+        catalog = tap_codat.discover(ctx)
+        stream_ids = {e.tap_stream_id for e in catalog.streams}
+        self.assertNotIn("bank_accounts", stream_ids)
+        self.assertNotIn("bank_account_transactions", stream_ids)

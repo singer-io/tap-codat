@@ -6,6 +6,7 @@ from singer import utils, metadata
 from singer.catalog import Catalog, CatalogEntry, Schema
 from . import streams as streams_
 from .context import Context
+from .http import CodatForbiddenError
 from .state import sanitize_bookmarks
 
 REQUIRED_CONFIG_KEYS = ["start_date", "api_key"]
@@ -43,6 +44,46 @@ def check_credentials_are_authorized(ctx):
     streams_.companies.raw_fetch(ctx)
 
 
+def _get_first_company_id(ctx):
+    """Fetch companies and return the first company's ID for access checks."""
+    resp = streams_.companies.raw_fetch(ctx)
+    results = resp.get("results", []) if resp else []
+    if results:
+        return results[0]["id"]
+    return None
+
+
+def _apply_access_checks(ctx, accessible_streams):
+    """
+    Probe each stream for read access and return only accessible streams.
+    Raises CodatForbiddenError if no streams are accessible.
+    """
+    company_id = _get_first_company_id(ctx)
+
+    inaccessible_streams = []
+    result_streams = []
+
+    for stream in accessible_streams:
+        if stream.check_access(ctx, company_id):
+            result_streams.append(stream)
+        else:
+            inaccessible_streams.append(stream.tap_stream_id)
+
+    if inaccessible_streams:
+        if not result_streams:
+            raise CodatForbiddenError(
+                "HTTP-error-code: 403, Error: The account credentials supplied do not have 'read' access to any "
+                "of the streams supported by the tap. Data collection cannot be initiated due to lack of permissions."
+            )
+        LOGGER.warning(
+            "The account credentials supplied do not have 'read' access to the following stream(s): %s. "
+            "These streams have been excluded from the catalog.",
+            ", ".join(inaccessible_streams),
+        )
+
+    return result_streams
+
+
 def add_stream_to_catalog(catalog, ctx, stream):
     schema_dict = load_schema(ctx, stream.tap_stream_id)
     schema = Schema.from_dict(schema_dict)
@@ -65,10 +106,11 @@ def add_stream_to_catalog(catalog, ctx, stream):
 
 
 def discover(ctx):
-    check_credentials_are_authorized(ctx)
     catalog = Catalog([])
 
-    for stream in streams_.all_streams:
+    accessible_streams = _apply_access_checks(ctx, streams_.all_streams)
+
+    for stream in accessible_streams:
         add_stream_to_catalog(catalog, ctx, stream)
         for substream in stream.substreams:
             add_stream_to_catalog(catalog, ctx, substream)

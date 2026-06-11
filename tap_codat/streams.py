@@ -2,6 +2,7 @@ import singer
 from singer import metrics
 from singer.transform import transform as tform
 from .transform import transform_dts
+from .http import CodatForbiddenError
 import json
 
 from tap_codat.state import incorporate, save_state, \
@@ -80,6 +81,28 @@ class Stream(object):
             substream.parent_stream = self
 
         self.state_filter = state_filter
+
+    def check_access(self, ctx, company_id=None):
+        """
+        Verify that the API credentials have read access to this stream.
+        Returns True if accessible, False if a 403 Forbidden error is raised.
+        """
+        if self.tap_stream_id == "companies":
+            path = self.path
+        elif company_id:
+            path = self.path.format(companyId=company_id, connectionId="")
+        else:
+            return True
+
+        try:
+            ctx.client.GET({"path": path}, self.tap_stream_id)
+            return True
+        except CodatForbiddenError:
+            LOGGER.warning(
+                "Stream '%s' does not have read permission, excluding from catalog.",
+                self.tap_stream_id,
+            )
+            return False
 
     def metrics(self, records):
         with metrics.record_counter(self.tap_stream_id) as counter:
