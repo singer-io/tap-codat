@@ -224,6 +224,10 @@ class TestTransformImpl(unittest.TestCase):
         result = _transform_impl(item, [DictKey("date")])
         self.assertIn("2024-06-15", result["date"])
 
+    def test_normalizes_offset_datetime_to_utc(self):
+        result = _transform_impl("2024-01-15T10:00:00+05:30", [], 0)
+        self.assertEqual(result, "2024-01-15T04:30:00.000000Z")
+
     def test_skips_none_values(self):
         item = {"date": None, "name": "test"}
         result = _transform_impl(item, [DictKey("date")])
