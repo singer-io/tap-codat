@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import requests
 
-from tap_codat.http import Client, RateLimitException, _join, BASE_URL, UAT_URL
+from tap_codat.http import Client, RateLimitException, CodatForbiddenError, _join, BASE_URL, UAT_URL
 
 
 default_config = {
@@ -238,12 +238,19 @@ class TestClientRequestWithHandling(unittest.TestCase):
 
     @patch.object(Client, "prepare_and_send")
     def test_calls_raise_for_status_on_other_4xx(self, mock_send):
-        """Status codes like 400 or 403 call raise_for_status."""
+        """Status codes like 400 call raise_for_status."""
         client = self._make_client()
         resp = self._make_response(400)
         mock_send.return_value = resp
         client.request_with_handling(MagicMock(), "companies")
         resp.raise_for_status.assert_called_once()
+
+    @patch.object(Client, "prepare_and_send")
+    def test_403_raises_codat_forbidden_error(self, mock_send):
+        client = self._make_client()
+        mock_send.return_value = self._make_response(403)
+        with self.assertRaises(CodatForbiddenError):
+            client.request_with_handling(MagicMock(), "companies")
 
     @patch.object(Client, "prepare_and_send")
     def test_multiple_404s_accumulate_logs(self, mock_send):

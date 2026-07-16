@@ -13,6 +13,10 @@ class RateLimitException(Exception):
     pass
 
 
+class CodatForbiddenError(Exception):
+    pass
+
+
 def _join(a, b):
     return a.rstrip("/") + "/" + b.lstrip("/")
 
@@ -54,6 +58,11 @@ class Client(object):
     
         if response.status_code in [429, 500, 501, 502, 503]:
             raise RateLimitException()
+        elif response.status_code == 403:
+            raise CodatForbiddenError(
+                "HTTP-error-code: 403, Error: The credentials do not have "
+                "read access to the requested resource."
+            )
         elif response.status_code == 409:
             # caused by broken connection on codat's side
             log_msg = f"failed to fetch due to {response.status_code} status code"
