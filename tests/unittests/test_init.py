@@ -2,6 +2,7 @@
 
 import json
 import os
+import sys
 import unittest
 from io import StringIO
 from unittest.mock import MagicMock, mock_open, patch
@@ -31,10 +32,9 @@ from tap_codat.transform import (
 )
 
 try:
-    from ..base import CodatBaseTest
+    from ..mockedtests.base import CodatBaseTest
 except ImportError:
-    import sys
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'mockedtests'))
     from base import CodatBaseTest
 
 
@@ -761,6 +761,16 @@ class TestSyncCompanyInfo(CodatBaseTest, unittest.TestCase):
         records = mock_write_records.call_args[0][1]
         self.assertEqual(len(records), 1)
         self.assertIn("companyId", records[0])
+
+
+class TestMainEntrypoints(unittest.TestCase):
+
+    @patch('tap_codat.LOGGER.critical')
+    @patch('tap_codat.main_impl', side_effect=RuntimeError('boom'))
+    def test_main_logs_and_reraises(self, mock_main_impl, mock_critical):
+        with self.assertRaises(RuntimeError):
+            tap_codat.main()
+        mock_critical.assert_called_once()
 
 
 if __name__ == '__main__':

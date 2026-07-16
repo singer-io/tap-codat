@@ -10,7 +10,8 @@ jobs:
           command: |
             uv venv --python 3.12 /usr/local/share/virtualenvs/tap-codat
             source /usr/local/share/virtualenvs/tap-codat/bin/activate
-            uv pip install .
+            uv pip install -U setuptools
+            uv pip install -e .[dev]
       - run:
           name: 'JSON Validator'
           command: |
@@ -20,24 +21,42 @@ jobs:
           name: 'pylint'
           command: |
             source /usr/local/share/virtualenvs/tap-codat/bin/activate
-            uv pip install pylint
             pylint tap_codat -d C,R,W
       - run:
           name: 'Unit Tests'
           command: |
             source /usr/local/share/virtualenvs/tap-codat/bin/activate
-            uv pip install pytest coverage
-            coverage run -m pytest tests/unittests
-            coverage html
-      - store_test_results:
-          path: test_output/report.xml
-      - store_artifacts:
-          path: htmlcov
+            mkdir -p test_output
+            pytest --cov=tap_codat --cov-report=term-missing --junitxml=test_output/unittests.xml tests/unittests
+          when: always
       - run:
-          name: 'Integration Tests'
+          name: 'Mocked Integration Tests'
           command: |
             source /usr/local/share/virtualenvs/tap-codat/bin/activate
-            python -m pytest tests/test_*.py -v
+            pytest --cov=tap_codat --cov-report=term-missing --junitxml=test_output/mockedtests.xml tests/mockedtests -v
+          when: always
+      - run:
+          name: 'Coverage Report'
+          command: |
+            source /usr/local/share/virtualenvs/tap-codat/bin/activate
+            pytest --cov=tap_codat --cov-report=term-missing --junitxml=test_output/all_tests.xml tests/
+            coverage html
+          when: always
+      - store_test_results:
+          path: test_output
+      - store_artifacts:
+          path: htmlcov
+      # TODO: Uncomment when credentials are available in CI environment
+      # - run:
+      #     name: 'Integration Tests'
+      #     command: |
+      #       source /usr/local/share/virtualenvs/tap-tester/bin/activate
+      #       uv pip install --upgrade awscli
+      #       uv pip install .
+      #       aws s3 cp s3://com-stitchdata-dev-deployment-assets/environments/tap-tester/tap_tester_sandbox dev_env.sh
+      #       source dev_env.sh
+      #       unset USE_STITCH_BACKEND
+      #       run-test --tap=tap-codat tests
 
 workflows:
   version: 2
