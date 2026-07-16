@@ -2,7 +2,7 @@
 safe_strftime, _transform_impl, and transform_dts."""
 
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pendulum
 
@@ -195,6 +195,12 @@ class TestSafeStrftime(unittest.TestCase):
         dt = pendulum.parse("2024-03-15T14:30:45Z")
         result = safe_strftime(dt)
         self.assertIn("14:30:45", result)
+
+    @patch("tap_codat.transform.singer_strftime", return_value="4Y-01-01 00:00:00")
+    def test_fallback_for_broken_strftime_impl(self, _mock_strftime):
+        dt = pendulum.parse("2024-03-15T14:30:45Z")
+        result = safe_strftime(dt)
+        self.assertEqual(result, dt.strftime('%Y-%m-%dT%H:%M:%S.%fZ'))
 
 
 # ---------------------------------------------------------------------------

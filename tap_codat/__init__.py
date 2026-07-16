@@ -113,5 +113,5 @@ def main():
         LOGGER.critical(exc)
         raise
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()

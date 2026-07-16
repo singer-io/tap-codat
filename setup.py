@@ -14,6 +14,15 @@ setup(
         "requests==2.34.2",
         "pendulum==3.2.0"
     ],
+    extras_require={
+        'dev': [
+            'pylint',
+            'parameterized',
+            'pytest',
+            'pytest-cov',
+            'coverage',
+        ]
+      },
     entry_points="""
     [console_scripts]
     tap-codat=tap_codat:main

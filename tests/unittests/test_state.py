@@ -5,10 +5,13 @@ import json
 import unittest
 from unittest.mock import mock_open, patch
 
+import tap_codat.state as state_module
+
 from tap_codat.state import (
     get_last_record_value_for_table,
     incorporate,
     load_state,
+    sanitize_bookmarks,
     save_state,
 )
 
@@ -125,6 +128,11 @@ class TestIncorporate(unittest.TestCase):
         self.assertEqual(result["bookmarks"]["t1"]["c1"]["last_record"], "2024-01-01T00:00:00Z")
         self.assertEqual(result["bookmarks"]["t2"]["c1"]["last_record"], "2024-05-01T00:00:00Z")
 
+    def test_sanitize_stream_bookmark_returns_for_non_dict_bookmarks(self):
+        state = {"bookmarks": None}
+        state_module._sanitize_stream_bookmark(state, "t1")
+        self.assertEqual(state, {"bookmarks": None})
+
 
 class TestIncorporateRoundTrip(unittest.TestCase):
     """Verify incorporate and get_last_record_value_for_table work together."""
@@ -157,6 +165,29 @@ class TestIncorporateRoundTrip(unittest.TestCase):
         state = incorporate({}, "t1", "c1", "f", "2024-01-01T00:00:00Z")
         result = get_last_record_value_for_table(state, "t2", "c1")
         self.assertIsNone(result)
+
+
+class TestSanitizeBookmarks(unittest.TestCase):
+
+    def test_removes_empty_and_none_company_entries(self):
+        state = {
+            "bookmarks": {
+                "accounts": {
+                    "c1": {},
+                    "c2": None,
+                    "c3": {"last_record": "2024-01-01T00:00:00Z"},
+                }
+            }
+        }
+        result = sanitize_bookmarks(state)
+        self.assertIn("c3", result["bookmarks"]["accounts"])
+        self.assertNotIn("c1", result["bookmarks"]["accounts"])
+        self.assertNotIn("c2", result["bookmarks"]["accounts"])
+
+    def test_removes_stream_key_when_stream_becomes_empty(self):
+        state = {"bookmarks": {"accounts": {"c1": {}, "c2": None}}}
+        result = sanitize_bookmarks(state)
+        self.assertNotIn("accounts", result["bookmarks"])
 
 
 # ---------------------------------------------------------------------------

@@ -31,10 +31,10 @@ from tap_codat.streams import (
 )
 
 try:
-    from ..base import CodatBaseTest
+    from ..mockedtests.base import CodatBaseTest
 except ImportError:
     import sys
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "mockedtests"))
     from base import CodatBaseTest
 
 
@@ -760,6 +760,144 @@ class TestStreamWriteRecords(unittest.TestCase):
         stream = Stream("test", ["id"], "/test")
         stream.write_records([])
         mock_write.assert_called_once_with("test", [])
+
+    @patch("tap_codat.streams.LOGGER.info")
+    @patch("tap_codat.streams.singer.write_records")
+    def test_write_records_logs_oversized_payload(self, mock_write, mock_log):
+        stream = Stream("test", ["id"], "/test")
+        huge = {"id": "r1", "payload": "x" * ((4 * 1024 * 1024) + 1)}
+        stream.write_records([huge])
+        mock_write.assert_called_once_with("test", [huge])
+        self.assertTrue(
+            any("I saw record that was" in str(call_) for call_ in mock_log.call_args_list)
+        )
+
+
+class TestStreamAdditionalProperties(unittest.TestCase):
+
+    @patch("tap_codat.streams.LOGGER.info")
+    @patch("tap_codat.streams.tform", side_effect=Exception("validation failed"))
+    def test_log_additional_properties_on_transform_error(self, _mock_tform, mock_log):
+        stream = Stream("accounts", ["id"], "/test")
+        ctx = MagicMock()
+        ctx.catalog.get_stream.return_value.schema.to_dict.return_value = {
+            "type": "object",
+            "properties": {},
+        }
+        stream.log_additional_properties(ctx, [{"id": "1"}])
+        mock_log.assert_called_once()
+
+
+class TestBankStatementLines(unittest.TestCase):
+
+    def test_sync_children_pops_details_and_writes_lines(self):
+        stream = BankStatementLines("bank_statement_lines", ["companyId"], None)
+        company = {"id": "c1"}
+        statements = [{"accountName": "A", "details": [{"amount": 1}, {"amount": 2}]}]
+
+        with patch.object(stream, "write_records") as mock_write:
+            stream.sync_children(MagicMock(), "/ignored", company, statements)
+
+        self.assertNotIn("details", statements[0])
+        written = mock_write.call_args[0][0]
+        self.assertEqual(written[0]["companyId"], "c1")
+        self.assertEqual(written[0]["accountName"], "A")
+        self.assertEqual(written[0]["_lineIndex"], 0)
+
+
+class TestBankAccountTransactions(unittest.TestCase):
+
+    def test_sync_children_calls_sync_per_account(self):
+        stream = BankAccountTransactions("bank_account_transactions", ["companyId"], "/{id}/transactions")
+        with patch.object(stream, "sync_transactions_for_account") as mock_sync:
+            stream.sync_children(MagicMock(), "/companies/c1/data/bankAccounts", {"id": "c1"}, [{"id": "a1"}, {"id": "a2"}])
+        self.assertEqual(mock_sync.call_count, 2)
+
+    def test_sync_transactions_returns_when_missing_id(self):
+        stream = BankAccountTransactions("bank_account_transactions", ["companyId"], "/{id}/transactions")
+        ctx = MagicMock()
+        with patch.object(stream, "write_records") as mock_write:
+            stream.sync_transactions_for_account(ctx, "/parent", {"id": "c1"}, {"name": "acct"})
+        ctx.client.GET.assert_not_called()
+        mock_write.assert_not_called()
+
+    def test_sync_transactions_returns_when_response_none(self):
+        stream = BankAccountTransactions("bank_account_transactions", ["companyId"], "/{id}/transactions")
+        ctx = MagicMock()
+        ctx.client.GET.return_value = None
+        with patch.object(stream, "write_records") as mock_write:
+            stream.sync_transactions_for_account(ctx, "/parent", {"id": "c1"}, {"id": "a1"})
+        mock_write.assert_not_called()
+
+    def test_sync_transactions_writes_enriched_records(self):
+        stream = BankAccountTransactions("bank_account_transactions", ["companyId"], "/{id}/transactions")
+        ctx = MagicMock()
+        ctx.client.GET.return_value = [{"amount": 1}, {"amount": 2}]
+        with patch.object(stream, "transform_dts", return_value=[{"amount": 1}, {"amount": 2}]):
+            with patch.object(stream, "write_records") as mock_write:
+                stream.sync_transactions_for_account(ctx, "/parent", {"id": "c1"}, {"id": "a1"})
+        written = mock_write.call_args[0][0]
+        self.assertEqual(written[0]["companyId"], "c1")
+        self.assertEqual(written[0]["bankAccountId"], "a1")
+        self.assertEqual(written[1]["_transactionIndex"], 1)
+
+
+class TestPaginationBranches(unittest.TestCase):
+
+    def test_paginated_sync_advances_page(self):
+        stream = Paginated("accounts", ["id", "companyId"], "/companies/{companyId}/data/accounts", collection_key="results", state_filter="modifiedDate")
+        ctx = MagicMock()
+        company = {"id": "c1"}
+
+        full_page = [{"id": str(i)} for i in range(PAGE_SIZE)]
+        short_page = [{"id": "last"}]
+        ctx.client.GET.side_effect = [
+            {"results": full_page},
+            {"results": short_page},
+        ]
+
+        with patch.object(stream, "transform_dts", side_effect=lambda _ctx, recs: recs):
+            with patch.object(stream, "write_records"):
+                stream.sync_for_company(ctx, company)
+
+        first_params = ctx.client.GET.call_args_list[0][0][0]["params"]
+        second_params = ctx.client.GET.call_args_list[1][0][0]["params"]
+        self.assertEqual(first_params["page"], 1)
+        self.assertEqual(second_params["page"], 2)
+
+    def test_bank_accounts_skips_connection_without_id(self):
+        stream = BankAccounts("bank_accounts", ["accountName", "companyId", "connectionId"], "/companies/{companyId}/connections/{connectionId}/data/bankAccounts", collection_key="results", state_filter="modifiedDate")
+        ctx = MagicMock()
+        company = {
+            "id": "c1",
+            "dataConnections": [{"id": None}, {"id": "conn-1"}],
+        }
+        ctx.client.GET.return_value = {"results": []}
+
+        with patch.object(stream, "transform_dts", side_effect=lambda _ctx, recs: recs):
+            with patch.object(stream, "write_records"):
+                stream.sync_for_company(ctx, company)
+
+        call_path = ctx.client.GET.call_args[0][0]["path"]
+        self.assertIn("conn-1", call_path)
+
+    def test_bank_accounts_advances_page(self):
+        stream = BankAccounts("bank_accounts", ["accountName", "companyId", "connectionId"], "/companies/{companyId}/connections/{connectionId}/data/bankAccounts", collection_key="results", state_filter="modifiedDate")
+        ctx = MagicMock()
+        company = {"id": "c1", "dataConnections": [{"id": "conn-1"}]}
+        ctx.client.GET.side_effect = [
+            {"results": [{"accountName": str(i)} for i in range(PAGE_SIZE)]},
+            {"results": [{"accountName": "last"}]},
+        ]
+
+        with patch.object(stream, "transform_dts", side_effect=lambda _ctx, recs: recs):
+            with patch.object(stream, "write_records"):
+                stream.sync_for_company(ctx, company)
+
+        params1 = ctx.client.GET.call_args_list[0][0][0]["params"]
+        params2 = ctx.client.GET.call_args_list[1][0][0]["params"]
+        self.assertEqual(params1["page"], 1)
+        self.assertEqual(params2["page"], 2)
 
 
 if __name__ == "__main__":
