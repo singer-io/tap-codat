@@ -94,10 +94,12 @@ class Stream(object):
                 # Bank accounts are connection-scoped; use the first available connectionId.
                 try:
                     conns = ctx.client.GET({"path": f"/companies/{company_id}/connections"}, "connections")
-                except CodatForbiddenError:
+                except CodatForbiddenError as exc:
                     LOGGER.warning(
-                        "Stream '%s' does not have read permission, excluding from catalog.",
+                        "Unauthorized Stream: %s, excluding from catalog. "
+                        "HTTP-Error-Message:'%s'",
                         self.tap_stream_id,
+                        str(exc),
                     )
                     return False
                 # The connections endpoint returns a plain list, not a dict.
@@ -113,10 +115,12 @@ class Stream(object):
         try:
             ctx.client.GET({"path": path}, self.tap_stream_id)
             return True
-        except CodatForbiddenError:
+        except CodatForbiddenError as exc:
             LOGGER.warning(
-                "Stream '%s' does not have read permission, excluding from catalog.",
+                "Unauthorized Stream: %s, excluding from catalog. "
+                "HTTP-Error-Message:'%s'",
                 self.tap_stream_id,
+                str(exc),
             )
             return False
 

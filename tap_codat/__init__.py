@@ -72,16 +72,15 @@ def _apply_access_checks(ctx, accessible_streams):
             result_streams.append(stream)
         else:
             inaccessible_streams.append(stream.tap_stream_id)
-
-    if inaccessible_streams:
-        if not result_streams:
-            raise CodatForbiddenError(
-                "HTTP-error-code: 403, Error: The account credentials supplied do not have 'read' access to any "
-                "of the streams supported by the tap. Data collection cannot be initiated due to lack of permissions."
-            )
+            
+    if not result_streams:
+        raise CodatForbiddenError(
+            "No streams are accessible. Ensure the credentials have read "
+            "permission for at least one stream."
+        )
+    elif inaccessible_streams:
         LOGGER.warning(
-            "The account credentials supplied do not have 'read' access to the following stream(s): %s. "
-            "These streams have been excluded from the catalog.",
+            "Unauthorized streams have been excluded: %s",
             ", ".join(inaccessible_streams),
         )
 
