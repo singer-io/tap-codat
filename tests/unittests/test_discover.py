@@ -381,8 +381,28 @@ class TestAccessCheckHelpers(unittest.TestCase):
             MagicMock(tap_stream_id="invoices", check_access=MagicMock(return_value=False)),
         ]
 
-        with self.assertRaises(CodatForbiddenError):
+        with self.assertRaisesRegex(
+            CodatForbiddenError,
+            "No streams are accessible\\. Ensure the credentials have read permission for at least one stream\\.",
+        ):
             tap_codat._apply_access_checks(ctx, inaccessible)
+
+    @unittest.mock.patch("tap_codat.LOGGER.warning")
+    def test_apply_access_checks_logs_exact_warning_for_inaccessible_streams(self, mock_warning):
+        ctx = _create_mock_context()
+        streams = [
+            MagicMock(tap_stream_id="companies"),
+            MagicMock(tap_stream_id="invoices", check_access=MagicMock(return_value=False)),
+            MagicMock(tap_stream_id="accounts", check_access=MagicMock(return_value=False)),
+        ]
+
+        result = tap_codat._apply_access_checks(ctx, streams)
+
+        self.assertEqual(result, [streams[0]])
+        mock_warning.assert_called_once_with(
+            "Unauthorized streams have been excluded: %s",
+            "invoices, accounts",
+        )
 
     def test_companies_stream_check_access_uses_root_path(self):
         stream = streams_.Stream("companies", ["id"], "/companies")
@@ -411,7 +431,24 @@ class TestAccessCheckHelpers(unittest.TestCase):
         ctx.client.GET = MagicMock(side_effect=CodatForbiddenError("forbidden connections"))
 
         self.assertFalse(stream.check_access(ctx, company_id="comp-001"))
-        self.assertTrue(mock_warn.called)
+        mock_warn.assert_called_once_with(
+            "Unauthorized Stream: %s, excluding from catalog. HTTP-Error-Message:'%s'",
+            "bank_accounts",
+            "forbidden connections",
+        )
+
+    @unittest.mock.patch("tap_codat.streams.LOGGER.warning")
+    def test_company_scoped_probe_forbidden_logs_exact_warning(self, mock_warn):
+        stream = streams_.Stream("accounts", ["id"], "/companies/{companyId}/data/accounts")
+        ctx = MagicMock()
+        ctx.client.GET = MagicMock(side_effect=CodatForbiddenError("forbidden accounts"))
+
+        self.assertFalse(stream.check_access(ctx, company_id="comp-001"))
+        mock_warn.assert_called_once_with(
+            "Unauthorized Stream: %s, excluding from catalog. HTTP-Error-Message:'%s'",
+            "accounts",
+            "forbidden accounts",
+        )
 
     def test_connection_scoped_stream_without_connections_stays_accessible(self):
         stream = streams_.Stream(
