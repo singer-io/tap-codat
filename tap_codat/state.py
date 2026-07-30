@@ -1,3 +1,4 @@
+import copy
 import json
 import singer
 
@@ -6,10 +7,14 @@ from dateutil.parser import parse
 LOGGER = singer.get_logger()
 
 
-def get_last_record_value_for_table(state, table):
-    last_value = state.get('bookmarks', {}) \
-                      .get(table, {}) \
-                      .get('last_record')
+def get_last_record_value_for_table(state, table, company_id):
+    company_bookmark = (state.get('bookmarks', {})
+                             .get(table, {})
+                             .get(company_id))
+    if not isinstance(company_bookmark, dict):
+        return None
+
+    last_value = company_bookmark.get('last_record')
 
     if last_value is None:
         return None
@@ -17,25 +22,71 @@ def get_last_record_value_for_table(state, table):
     return parse(last_value)
 
 
-def incorporate(state, table, field, value):
+def incorporate(state, table, company_id, field, value):
     if value is None:
         return state
 
-    new_state = state.copy()
+    new_state = copy.deepcopy(state)
 
     parsed = parse(value).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     if 'bookmarks' not in new_state:
         new_state['bookmarks'] = {}
 
-    if(new_state['bookmarks'].get(table, {}).get('last_record') is None or
-       new_state['bookmarks'].get(table, {}).get('last_record') < value):
-        new_state['bookmarks'][table] = {
+    # Sanitize first: remove any pre-existing empty dict or null company
+    _sanitize_stream_bookmark(new_state, table)
+
+    if table not in new_state['bookmarks']:
+        new_state['bookmarks'][table] = {}
+
+    current_value = (new_state['bookmarks'].get(table, {})
+                     .get(company_id) or {}).get('last_record')
+    # Lexicographic comparison is safe here: both values are normalised
+    # to the fixed-width ISO 8601 format "%Y-%m-%dT%H:%M:%SZ" (see `parsed` above).
+    if current_value is None or current_value < parsed:
+        new_state['bookmarks'][table][company_id] = {
             'field': field,
             'last_record': parsed,
         }
 
     return new_state
+
+
+def _sanitize_stream_bookmark(state, table):
+    """Remove any empty dict ({}) or null company entries from a specific
+    stream bookmark, and remove the stream key itself if it ends up empty."""
+    bookmarks = state.get('bookmarks')
+    if not isinstance(bookmarks, dict):
+        return
+
+    stream_val = bookmarks.get(table)
+    if not isinstance(stream_val, dict):
+        return
+
+    bad_keys = [cid for cid, cval in stream_val.items()
+                if cval is None or cval == {}]
+    for cid in bad_keys:
+        del stream_val[cid]
+
+    if not stream_val:
+        del bookmarks[table]
+
+
+def sanitize_bookmarks(state):
+    """Sanitize all stream bookmarks by removing any empty dict ({}) or
+    null company entries. Prevents emitting bad state shapes like:
+
+        {"bookmarks": {"companies": {"{ID}": {}}}}   # BAD
+        {"bookmarks": {"companies": {"{ID}": null}}} # BAD
+    """
+    bookmarks = state.get('bookmarks')
+    if not isinstance(bookmarks, dict):
+        return state
+
+    for stream_name in list(bookmarks.keys()):
+        _sanitize_stream_bookmark(state, stream_name)
+
+    return state
 
 
 def save_state(state):
