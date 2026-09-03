@@ -71,6 +71,14 @@ class Client(object):
             self.logs.append(log)            
             return None           
         elif response.status_code == 404:
+            if tap_stream_id == "companies":
+                # The root companies list never legitimately 404s; a valid key with
+                # zero companies returns 200 with an empty list, so treat this as
+                # invalid credentials/environment instead of silently continuing.
+                raise CodatForbiddenError(
+                    "HTTP-error-code: 404, Error: Unable to retrieve companies. "
+                    "Check that the api_key and uat_urls config values are correct."
+                )
             log_msg = f"failed to fetch due to {response.status_code} status code"
             LOGGER.warning(log_msg)
             self.logs.append(log)

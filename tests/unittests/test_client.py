@@ -167,16 +167,32 @@ class TestClientRequestWithHandling(unittest.TestCase):
     def test_returns_empty_results_on_404(self, mock_send):
         client = self._make_client()
         mock_send.return_value = self._make_response(404)
-        result = client.request_with_handling(MagicMock(), "companies")
+        result = client.request_with_handling(MagicMock(), "accounts")
         self.assertEqual(result, {"results": []})
 
     @patch.object(Client, "prepare_and_send")
     def test_404_appends_to_logs(self, mock_send):
         client = self._make_client()
         mock_send.return_value = self._make_response(404)
-        client.request_with_handling(MagicMock(), "companies")
+        client.request_with_handling(MagicMock(), "accounts")
         self.assertEqual(len(client.logs), 1)
         self.assertEqual(client.logs[0]["status_code"], 404)
+
+    @patch.object(Client, "prepare_and_send")
+    def test_companies_404_raises_codat_forbidden_error(self, mock_send):
+        """A 404 on the root /companies endpoint indicates invalid credentials, not empty results."""
+        client = self._make_client()
+        mock_send.return_value = self._make_response(404)
+        with self.assertRaises(CodatForbiddenError):
+            client.request_with_handling(MagicMock(), "companies")
+
+    @patch.object(Client, "prepare_and_send")
+    def test_companies_404_does_not_append_to_logs(self, mock_send):
+        client = self._make_client()
+        mock_send.return_value = self._make_response(404)
+        with self.assertRaises(CodatForbiddenError):
+            client.request_with_handling(MagicMock(), "companies")
+        self.assertEqual(client.logs, [])
 
     @patch.object(Client, "prepare_and_send")
     def test_returns_none_on_409(self, mock_send):

@@ -360,8 +360,54 @@ class TestAccessChecks(unittest.TestCase):
         self.assertNotIn("bank_accounts", stream_ids)
         self.assertNotIn("bank_account_transactions", stream_ids)
 
+    @unittest.mock.patch("tap_codat.LOGGER.warning")
+    def test_substream_exclusion_logs_parent_reason(self, mock_warning):
+        """Excluding a child logs why it was excluded, not just that its parent was."""
+        ctx = _create_mock_context()
+
+        def side_effect(request_kwargs, tap_stream_id):
+            if tap_stream_id == "bank_accounts":
+                raise CodatForbiddenError("403 Forbidden")
+            return {"results": [{"id": "comp-001"}]}
+
+        ctx.client.GET = MagicMock(side_effect=side_effect)
+
+        tap_codat.discover(ctx)
+
+        mock_warning.assert_any_call(
+            "Stream '%s' excluded from catalog because its parent stream '%s' is not accessible.",
+            "bank_account_transactions",
+            "bank_accounts",
+        )
+        mock_warning.assert_any_call(
+            "Unauthorized streams have been excluded: %s",
+            "bank_accounts, bank_account_transactions",
+        )
+
 
 class TestAccessCheckHelpers(unittest.TestCase):
+
+    def test_prune_inaccessible_children_removes_and_logs(self):
+        result_streams = [streams_.companies]
+        checked_streams = [streams_.companies, streams_.bank_accounts]
+
+        with unittest.mock.patch("tap_codat.LOGGER.warning") as mock_warning:
+            pruned = tap_codat._prune_inaccessible_children(result_streams, checked_streams)
+
+        self.assertEqual(pruned, ["bank_account_transactions"])
+        mock_warning.assert_called_once_with(
+            "Stream '%s' excluded from catalog because its parent stream '%s' is not accessible.",
+            "bank_account_transactions",
+            "bank_accounts",
+        )
+
+    def test_prune_inaccessible_children_no_op_when_parent_accessible(self):
+        result_streams = [streams_.companies, streams_.bank_accounts]
+        checked_streams = [streams_.companies, streams_.bank_accounts]
+
+        pruned = tap_codat._prune_inaccessible_children(result_streams, checked_streams)
+
+        self.assertEqual(pruned, [])
 
     def test_check_credentials_are_authorized_calls_companies_raw_fetch(self):
         ctx = _create_mock_context()

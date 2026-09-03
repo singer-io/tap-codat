@@ -53,6 +53,28 @@ def _get_first_company_id(ctx):
     return None
 
 
+def _prune_inaccessible_children(result_streams, checked_streams):
+    """
+    Log substreams whose parent stream was excluded from the catalog.
+    discover() only ever adds substreams of an accessible parent, so this
+    does not need to mutate anything - it just surfaces the reason each
+    substream is missing. Returns the tap_stream_ids of those substreams.
+    """
+    accessible_ids = {s.tap_stream_id for s in result_streams}
+    pruned = []
+    for stream in checked_streams:
+        if stream.tap_stream_id in accessible_ids:
+            continue
+        for substream in stream.substreams:
+            LOGGER.warning(
+                "Stream '%s' excluded from catalog because its parent stream '%s' is not accessible.",
+                substream.tap_stream_id,
+                stream.tap_stream_id,
+            )
+            pruned.append(substream.tap_stream_id)
+    return pruned
+
+
 def _apply_access_checks(ctx, accessible_streams):
     """
     Probe each stream for read access and return only accessible streams.
@@ -72,7 +94,9 @@ def _apply_access_checks(ctx, accessible_streams):
             result_streams.append(stream)
         else:
             inaccessible_streams.append(stream.tap_stream_id)
-            
+
+    inaccessible_streams.extend(_prune_inaccessible_children(result_streams, accessible_streams))
+
     if not result_streams:
         raise CodatForbiddenError(
             "No streams are accessible. Ensure the credentials have read "
