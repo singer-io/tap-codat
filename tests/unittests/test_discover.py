@@ -341,6 +341,25 @@ class TestAccessChecks(unittest.TestCase):
         with self.assertRaises(CodatForbiddenError):
             tap_codat.discover(ctx)
 
+    @unittest.mock.patch("tap_codat.LOGGER.warning")
+    def test_root_forbidden_raises_actionable_no_streams_error(self, mock_warning):
+        ctx = _create_mock_context()
+        ctx.client.GET = MagicMock(side_effect=CodatForbiddenError("403 Forbidden"))
+
+        with self.assertRaisesRegex(
+            CodatForbiddenError,
+            "No streams are accessible\\. Ensure the credentials have read permission for at least one stream\\.",
+        ):
+            tap_codat.discover(ctx)
+
+        ctx.client.GET.assert_called_once_with({"path": "/companies"}, "companies")
+        mock_warning.assert_any_call(
+            "Unauthorized Stream: %s, excluding from catalog. HTTP-Error-Message:'%s'",
+            "companies",
+            "403 Forbidden",
+        )
+        mock_warning.assert_any_call("Unauthorized streams have been excluded: %s", "companies")
+
     def test_substreams_excluded_when_parent_forbidden(self):
         """Substreams are excluded when their parent stream is forbidden."""
         ctx = _create_mock_context()

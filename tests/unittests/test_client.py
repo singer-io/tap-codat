@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import requests
 
-from tap_codat.http import Client, RateLimitException, CodatForbiddenError, _join, BASE_URL, UAT_URL
+from tap_codat.http import Client, RateLimitException, CodatAuthenticationError, CodatForbiddenError, _join, BASE_URL, UAT_URL
 
 
 default_config = {
@@ -179,18 +179,18 @@ class TestClientRequestWithHandling(unittest.TestCase):
         self.assertEqual(client.logs[0]["status_code"], 404)
 
     @patch.object(Client, "prepare_and_send")
-    def test_companies_404_raises_codat_forbidden_error(self, mock_send):
+    def test_companies_404_raises_codat_authentication_error(self, mock_send):
         """A 404 on the root /companies endpoint indicates invalid credentials, not empty results."""
         client = self._make_client()
         mock_send.return_value = self._make_response(404)
-        with self.assertRaises(CodatForbiddenError):
+        with self.assertRaises(CodatAuthenticationError):
             client.request_with_handling(MagicMock(), "companies")
 
     @patch.object(Client, "prepare_and_send")
     def test_companies_404_does_not_append_to_logs(self, mock_send):
         client = self._make_client()
         mock_send.return_value = self._make_response(404)
-        with self.assertRaises(CodatForbiddenError):
+        with self.assertRaises(CodatAuthenticationError):
             client.request_with_handling(MagicMock(), "companies")
         self.assertEqual(client.logs, [])
 

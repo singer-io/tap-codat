@@ -17,6 +17,10 @@ class CodatForbiddenError(Exception):
     pass
 
 
+class CodatAuthenticationError(Exception):
+    pass
+
+
 def _join(a, b):
     return a.rstrip("/") + "/" + b.lstrip("/")
 
@@ -72,10 +76,7 @@ class Client(object):
             return None           
         elif response.status_code == 404:
             if tap_stream_id == "companies":
-                # The root companies list never legitimately 404s; a valid key with
-                # zero companies returns 200 with an empty list, so treat this as
-                # invalid credentials/environment instead of silently continuing.
-                raise CodatForbiddenError(
+                raise CodatAuthenticationError(
                     "HTTP-error-code: 404, Error: Unable to retrieve companies. "
                     "Check that the api_key and uat_urls config values are correct."
                 )

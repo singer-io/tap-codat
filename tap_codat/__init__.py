@@ -6,7 +6,7 @@ from singer import utils, metadata
 from singer.catalog import Catalog, CatalogEntry, Schema
 from . import streams as streams_
 from .context import Context
-from .http import CodatForbiddenError
+from .http import CodatForbiddenError, CodatAuthenticationError
 from .state import sanitize_bookmarks
 
 REQUIRED_CONFIG_KEYS = ["start_date", "api_key"]
@@ -80,7 +80,19 @@ def _apply_access_checks(ctx, accessible_streams):
     Probe each stream for read access and return only accessible streams.
     Raises CodatForbiddenError if no streams are accessible.
     """
-    company_id = _get_first_company_id(ctx)
+    try:
+        company_id = _get_first_company_id(ctx)
+    except CodatForbiddenError as exc:
+        LOGGER.warning(
+            "Unauthorized Stream: %s, excluding from catalog. HTTP-Error-Message:'%s'",
+            "companies",
+            str(exc),
+        )
+        LOGGER.warning("Unauthorized streams have been excluded: %s", "companies")
+        raise CodatForbiddenError(
+            "No streams are accessible. Ensure the credentials have read permission "
+            "for at least one stream. Root access check failed: {}".format(exc)
+        ) from exc
 
     inaccessible_streams = []
     result_streams = []
