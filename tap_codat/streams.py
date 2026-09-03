@@ -2,6 +2,7 @@ import singer
 from singer import metrics
 from singer.transform import transform as tform
 from .transform import transform_dts
+from .http import CodatForbiddenError
 import json
 
 from tap_codat.state import incorporate, save_state, \
@@ -80,6 +81,51 @@ class Stream(object):
             substream.parent_stream = self
 
         self.state_filter = state_filter
+
+    def check_access(self, ctx, company_id=None):
+        """Verify that the API credentials have read access to this stream."""
+        if self.tap_stream_id == "companies":
+            path = self.path
+        elif not company_id:
+            # No company context available to probe company-scoped streams.
+            return True
+        else:
+            if "{connectionId}" in self.path:
+                # Bank accounts are connection-scoped; use the first available connectionId.
+                try:
+                    conns = ctx.client.GET(
+                        {"path": f"/companies/{company_id}/connections", "_access_check": True},
+                        "connections",
+                    )
+                except CodatForbiddenError as exc:
+                    LOGGER.warning(
+                        "Unauthorized Stream: %s, excluding from catalog. "
+                        "HTTP-Error-Message:'%s'",
+                        self.tap_stream_id,
+                        str(exc),
+                    )
+                    return False
+                # The connections endpoint returns a plain list, not a dict.
+                conn_list = conns if isinstance(conns, list) else (conns or {}).get("results") or []
+                conn_id = conn_list[0].get("id") if conn_list else None
+                if not conn_id:
+                    # Nothing to probe (no connections) — keep the stream in the catalog.
+                    return True
+                path = self.path.format(companyId=company_id, connectionId=conn_id)
+            else:
+                path = self.path.format(companyId=company_id)
+
+        try:
+            ctx.client.GET({"path": path, "_access_check": True}, self.tap_stream_id)
+            return True
+        except CodatForbiddenError as exc:
+            LOGGER.warning(
+                "Unauthorized Stream: %s, excluding from catalog. "
+                "HTTP-Error-Message:'%s'",
+                self.tap_stream_id,
+                str(exc),
+            )
+            return False
 
     def metrics(self, records):
         with metrics.record_counter(self.tap_stream_id) as counter:

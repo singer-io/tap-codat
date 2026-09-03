@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import requests
 
-from tap_codat.http import Client, RateLimitException, _join, BASE_URL, UAT_URL
+from tap_codat.http import Client, RateLimitException, CodatAuthenticationError, CodatForbiddenError, _join, BASE_URL, UAT_URL
 
 
 default_config = {
@@ -167,16 +167,44 @@ class TestClientRequestWithHandling(unittest.TestCase):
     def test_returns_empty_results_on_404(self, mock_send):
         client = self._make_client()
         mock_send.return_value = self._make_response(404)
-        result = client.request_with_handling(MagicMock(), "companies")
+        result = client.request_with_handling(MagicMock(), "accounts")
         self.assertEqual(result, {"results": []})
 
     @patch.object(Client, "prepare_and_send")
     def test_404_appends_to_logs(self, mock_send):
         client = self._make_client()
         mock_send.return_value = self._make_response(404)
-        client.request_with_handling(MagicMock(), "companies")
+        client.request_with_handling(MagicMock(), "accounts")
         self.assertEqual(len(client.logs), 1)
         self.assertEqual(client.logs[0]["status_code"], 404)
+
+    @patch.object(Client, "prepare_and_send")
+    def test_access_probe_404_propagates_http_error(self, mock_send):
+        client = self._make_client()
+        response = self._make_response(404)
+        response.raise_for_status.side_effect = requests.exceptions.HTTPError("404 Not Found")
+        mock_send.return_value = response
+
+        with self.assertRaisesRegex(requests.exceptions.HTTPError, "404 Not Found"):
+            client.request_with_handling(MagicMock(), "accounts", access_check=True)
+
+        self.assertEqual(client.logs, [])
+
+    @patch.object(Client, "prepare_and_send")
+    def test_companies_404_raises_codat_authentication_error(self, mock_send):
+        """A 404 on the root /companies endpoint indicates invalid credentials, not empty results."""
+        client = self._make_client()
+        mock_send.return_value = self._make_response(404)
+        with self.assertRaises(CodatAuthenticationError):
+            client.request_with_handling(MagicMock(), "companies")
+
+    @patch.object(Client, "prepare_and_send")
+    def test_companies_404_does_not_append_to_logs(self, mock_send):
+        client = self._make_client()
+        mock_send.return_value = self._make_response(404)
+        with self.assertRaises(CodatAuthenticationError):
+            client.request_with_handling(MagicMock(), "companies")
+        self.assertEqual(client.logs, [])
 
     @patch.object(Client, "prepare_and_send")
     def test_returns_none_on_409(self, mock_send):
@@ -238,12 +266,19 @@ class TestClientRequestWithHandling(unittest.TestCase):
 
     @patch.object(Client, "prepare_and_send")
     def test_calls_raise_for_status_on_other_4xx(self, mock_send):
-        """Status codes like 400 or 403 call raise_for_status."""
+        """Status codes like 400 call raise_for_status."""
         client = self._make_client()
         resp = self._make_response(400)
         mock_send.return_value = resp
         client.request_with_handling(MagicMock(), "companies")
         resp.raise_for_status.assert_called_once()
+
+    @patch.object(Client, "prepare_and_send")
+    def test_403_raises_codat_forbidden_error(self, mock_send):
+        client = self._make_client()
+        mock_send.return_value = self._make_response(403)
+        with self.assertRaises(CodatForbiddenError):
+            client.request_with_handling(MagicMock(), "companies")
 
     @patch.object(Client, "prepare_and_send")
     def test_multiple_404s_accumulate_logs(self, mock_send):

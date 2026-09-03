@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import tap_codat
 from tap_codat.context import Context
-from tap_codat.http import Client, RateLimitException
+from tap_codat.http import Client, RateLimitException, CodatAuthenticationError, CodatForbiddenError
 from tap_codat.state import (
     get_last_record_value_for_table,
     incorporate,
@@ -321,9 +321,18 @@ class TestClientRequestHandling(unittest.TestCase):
         client = self._make_client()
         mock_send.return_value = self._make_mock_response(404)
         request = MagicMock()
-        result = client.request_with_handling(request, "companies")
+        result = client.request_with_handling(request, "accounts")
         self.assertEqual(result, {"results": []})
         self.assertEqual(len(client.logs), 1)
+
+    @patch.object(Client, 'prepare_and_send')
+    def test_companies_404_raises_codat_authentication_error(self, mock_send):
+        """A 404 on the root /companies endpoint signals invalid credentials, not empty results."""
+        client = self._make_client()
+        mock_send.return_value = self._make_mock_response(404)
+        request = MagicMock()
+        with self.assertRaises(CodatAuthenticationError):
+            client.request_with_handling(request, "companies")
 
     @patch.object(Client, 'prepare_and_send')
     def test_returns_none_on_409(self, mock_send):

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.0
+  * Exclude inaccessible streams (403) from the catalog during discovery [#31](https://github.com/singer-io/tap-codat/pull/31)
+
 ## 1.0.0
   * State bookmark structure changed from `bookmarks[stream][companyId]` to per-company keying under each stream. [#29](https://github.com/singer-io/tap-codat/pull/29)
   * Update libraries [#26](https://github.com/singer-io/tap-codat/pull/26)
