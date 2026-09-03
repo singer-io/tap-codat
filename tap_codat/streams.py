@@ -93,7 +93,10 @@ class Stream(object):
             if "{connectionId}" in self.path:
                 # Bank accounts are connection-scoped; use the first available connectionId.
                 try:
-                    conns = ctx.client.GET({"path": f"/companies/{company_id}/connections"}, "connections")
+                    conns = ctx.client.GET(
+                        {"path": f"/companies/{company_id}/connections", "_access_check": True},
+                        "connections",
+                    )
                 except CodatForbiddenError as exc:
                     LOGGER.warning(
                         "Unauthorized Stream: %s, excluding from catalog. "
@@ -113,7 +116,7 @@ class Stream(object):
                 path = self.path.format(companyId=company_id)
 
         try:
-            ctx.client.GET({"path": path}, self.tap_stream_id)
+            ctx.client.GET({"path": path, "_access_check": True}, self.tap_stream_id)
             return True
         except CodatForbiddenError as exc:
             LOGGER.warning(

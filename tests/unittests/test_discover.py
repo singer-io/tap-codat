@@ -477,7 +477,10 @@ class TestAccessCheckHelpers(unittest.TestCase):
         ctx.client.GET = MagicMock(return_value={"results": []})
 
         self.assertTrue(stream.check_access(ctx))
-        ctx.client.GET.assert_called_once_with({"path": "/companies"}, "companies")
+        ctx.client.GET.assert_called_once_with(
+            {"path": "/companies", "_access_check": True},
+            "companies",
+        )
 
     def test_company_scoped_stream_without_company_context_returns_true(self):
         stream = streams_.Stream("accounts", ["id"], "/companies/{companyId}/data/accounts")

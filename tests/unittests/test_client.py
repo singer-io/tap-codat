@@ -179,6 +179,18 @@ class TestClientRequestWithHandling(unittest.TestCase):
         self.assertEqual(client.logs[0]["status_code"], 404)
 
     @patch.object(Client, "prepare_and_send")
+    def test_access_probe_404_propagates_http_error(self, mock_send):
+        client = self._make_client()
+        response = self._make_response(404)
+        response.raise_for_status.side_effect = requests.exceptions.HTTPError("404 Not Found")
+        mock_send.return_value = response
+
+        with self.assertRaisesRegex(requests.exceptions.HTTPError, "404 Not Found"):
+            client.request_with_handling(MagicMock(), "accounts", access_check=True)
+
+        self.assertEqual(client.logs, [])
+
+    @patch.object(Client, "prepare_and_send")
     def test_companies_404_raises_codat_authentication_error(self, mock_send):
         """A 404 on the root /companies endpoint indicates invalid credentials, not empty results."""
         client = self._make_client()

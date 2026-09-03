@@ -49,7 +49,7 @@ class Client(object):
                           RateLimitException,
                           max_tries=10,
                           factor=2)
-    def request_with_handling(self, request, tap_stream_id):
+    def request_with_handling(self, request, tap_stream_id, access_check=False):
         with metrics.http_request_timer(tap_stream_id) as timer:
             response = self.prepare_and_send(request)
             timer.tags[metrics.Tag.http_status_code] = response.status_code
@@ -80,6 +80,8 @@ class Client(object):
                     "HTTP-error-code: 404, Error: Unable to retrieve companies. "
                     "Check that the api_key and uat_urls config values are correct."
                 )
+            if access_check:
+                response.raise_for_status()
             log_msg = f"failed to fetch due to {response.status_code} status code"
             LOGGER.warning(log_msg)
             self.logs.append(log)
@@ -88,8 +90,10 @@ class Client(object):
         return response.json()
 
     def GET(self, request_kwargs, *args, **kwargs):
+        request_kwargs = dict(request_kwargs)
+        access_check = request_kwargs.pop("_access_check", False)
         req = self.create_get_request(**request_kwargs)
-        return self.request_with_handling(req, *args, **kwargs)
+        return self.request_with_handling(req, *args, access_check=access_check, **kwargs)
 
     def write_and_clear_accumulated_logs(self):
         LOGGER.info(f"Writing accumulated Client logs: {self.logs}")
