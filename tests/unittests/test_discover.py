@@ -388,8 +388,9 @@ class TestAccessChecks(unittest.TestCase):
 class TestAccessCheckHelpers(unittest.TestCase):
 
     def test_prune_inaccessible_children_removes_and_logs(self):
+        bank_accounts = next(s for s in streams_.all_streams if s.tap_stream_id == "bank_accounts")
         result_streams = [streams_.companies]
-        checked_streams = [streams_.companies, streams_.bank_accounts]
+        checked_streams = [streams_.companies, bank_accounts]
 
         with unittest.mock.patch("tap_codat.LOGGER.warning") as mock_warning:
             pruned = tap_codat._prune_inaccessible_children(result_streams, checked_streams)
@@ -402,8 +403,9 @@ class TestAccessCheckHelpers(unittest.TestCase):
         )
 
     def test_prune_inaccessible_children_no_op_when_parent_accessible(self):
-        result_streams = [streams_.companies, streams_.bank_accounts]
-        checked_streams = [streams_.companies, streams_.bank_accounts]
+        bank_accounts = next(s for s in streams_.all_streams if s.tap_stream_id == "bank_accounts")
+        result_streams = [streams_.companies, bank_accounts]
+        checked_streams = [streams_.companies, bank_accounts]
 
         pruned = tap_codat._prune_inaccessible_children(result_streams, checked_streams)
 
